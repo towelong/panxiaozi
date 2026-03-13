@@ -1,0 +1,25 @@
+{
+  "projectName": "pxz",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "pnpm",
+  "includeExamples": true,
+  "tailwind": true,
+  "addOnOptions": {
+    "drizzle": {
+      "database": "mysql"
+    }
+  },
+  "envVarValues": {},
+  "git": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "nitro",
+    "shadcn",
+    "t3env",
+    "drizzle"
+  ]
+}
