@@ -18,6 +18,7 @@ import { Input } from "#/components/ui/input";
 import type { Category } from "#/db/schema";
 import { cn } from "#/lib/utils";
 import { getResourcePageListServer } from "#/server/resource";
+import { formatTime } from "#/utils/time";
 
 export const Route = createFileRoute("/resource")({
 	validateSearch: (search) =>
@@ -282,9 +283,10 @@ function RouteComponent() {
 												<h2>{r.title}</h2>
 											</Link>
 											<span className="text-xs text-muted-foreground shrink-0">
-												{r.updatedAt
-													? new Date(r.updatedAt).toLocaleDateString()
-													: ""}
+												{formatTime(
+													r.updatedAt?.toISOString() || "",
+													"YYYY-MM-DD",
+												)}
 											</span>
 										</div>
 

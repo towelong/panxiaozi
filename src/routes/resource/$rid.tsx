@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { ImagePreview } from "#/components/ImagePreview";
 import { Alert, AlertDescription } from "#/components/ui/alert";
+import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import {
 	Dialog,
@@ -15,6 +16,7 @@ import {
 } from "#/components/ui/dialog";
 import { cn } from "#/lib/utils";
 import { getResourceDetailServer, updateResource } from "#/server/resource";
+import { formatTime } from "#/utils/time";
 
 const defaultResourceSearch = {
 	q: undefined,
@@ -64,9 +66,12 @@ function RouteComponent() {
 	const [text, setText] = useState("");
 	const [error, setError] = useState("");
 	const [mounted, setMounted] = useState(false);
+	const [isMobile, setIsMobile] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
+		const ua = navigator.userAgent.toLowerCase();
+		setIsMobile(/android|iphone|ipad|ipod|mobile/.test(ua));
 	}, []);
 
 	const { resource, category, relatedResources } = Route.useLoaderData();
@@ -135,9 +140,7 @@ function RouteComponent() {
 								<div className="flex items-center">
 									<span className="font-medium mr-2">更新时间:</span>
 									<span className="text-muted-foreground">
-										{resource.updatedAt
-											? new Date(resource.updatedAt).toLocaleString()
-											: "未知"}
+										{formatTime(resource.updatedAt?.toISOString() || "")}
 									</span>
 								</div>
 							</div>
@@ -187,33 +190,35 @@ function RouteComponent() {
 										<Dialog>
 											<DialogTrigger>
 												{mounted && (
-													// biome-ignore lint/a11y/useKeyWithClickEvents: .
-													<p
-														className="bg-primary text-white px-1 py-1"
-														onClick={async () => {
-															if (item.url) {
-																setText(item.url);
-															} else {
-																try {
-																	const res = await updateResource({
-																		data: {
-																			id: item.id,
-																			categoryKey: category.key,
-																			externalUrl: item.externalUrl,
-																		},
-																	});
-																	setText(res.url);
-																} catch (_) {
-																	setError("资源已失效");
+													<Button asChild>
+														{/** biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
+														<h3
+															className="bg-primary text-white px-1 py-1"
+															onClick={async () => {
+																if (item.url) {
+																	setText(item.url);
+																} else {
+																	try {
+																		const res = await updateResource({
+																			data: {
+																				id: item.id,
+																				categoryKey: category.key,
+																				externalUrl: item.externalUrl,
+																			},
+																		});
+																		setText(res.url);
+																	} catch (_) {
+																		setError("资源已失效");
+																	}
 																}
-															}
-														}}
-													>
-														点击获取
-													</p>
+															}}
+														>
+															点击获取
+														</h3>
+													</Button>
 												)}
 											</DialogTrigger>
-											<DialogContent>
+											<DialogContent aria-describedby={undefined}>
 												<DialogHeader>
 													<DialogTitle>扫描二维码</DialogTitle>
 													<DialogDescription>
@@ -221,7 +226,7 @@ function RouteComponent() {
 													</DialogDescription>
 												</DialogHeader>
 												{mounted && (
-													<div className="flex flex-col items-center justify-center py-4 space-y-4">
+													<div className="flex w-full flex-col items-center justify-center py-4 space-y-4">
 														<div className="p-4 rounded-md">
 															{text ? (
 																<QRCode
@@ -233,6 +238,18 @@ function RouteComponent() {
 																error || "正在获取中..."
 															)}
 														</div>
+														{isMobile && text && (
+															<Button asChild className="w-full">
+																<a
+																	className="w-full"
+																	href={text}
+																	target="_blank"
+																	rel="noopener noreferrer"
+																>
+																	打开链接
+																</a>
+															</Button>
+														)}
 													</div>
 												)}
 											</DialogContent>

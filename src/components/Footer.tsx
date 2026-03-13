@@ -56,16 +56,14 @@ export const Footer = ({
 		{
 			title: "联系我们",
 			links: [
-				{ text: "微信公众号", url: "#" },
+				{ text: "微信公众号", url: "/contact" },
 				{ text: "邮箱", url: "mailto:i@xiaozi.cc" },
 			],
 		},
 		{
 			title: "社媒",
 			links: [
-				{ text: "Twitter", url: "#" },
-				{ text: "Instagram", url: "#" },
-				{ text: "LinkedIn", url: "#" },
+				{ text: "Twitter", url: "https://x.com/towelong" },
 			],
 		},
 	],
