@@ -25,7 +25,6 @@ WORKDIR /app
 
 COPY --from=builder --chown=nextjs:nodejs /app/.output ./.output
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder /app/public ./public
 
 COPY --from=builder /app/pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
