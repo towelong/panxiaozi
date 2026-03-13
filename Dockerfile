@@ -16,10 +16,10 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/.zeabur/output ./
+COPY --from=builder /app/.output ./
 
 EXPOSE 3000
 
 ENV PORT=3000
 
-CMD ["node", "server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"]
