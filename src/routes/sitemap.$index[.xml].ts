@@ -16,7 +16,7 @@ export const Route = createFileRoute("/sitemap/$index.xml")({
 						{
 							url: env.BASE_URL,
 							lastmod: now,
-							changefgefreqreq: "Daily",
+							changefreq: "Daily",
 							priority: 1.0,
 						},
 						{
