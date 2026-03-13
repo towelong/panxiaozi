@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "start": "node .output/server/index.mjs",
+    "start": "node server/index.mjs",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
