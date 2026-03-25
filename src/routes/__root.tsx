@@ -48,7 +48,7 @@ export const Route = createRootRoute({
 			{ property: "og:locale", content: "zh_CN" },
 			{ property: "og:site_name", content: "盘小子" },
 			{ property: "og:url", content: "https://pan.xiaozi.cc" },
-			{ property: "og:image", content: "/og.png" },
+			{ property: "og:image", content: "https://pan.xiaozi.cc/og.png" },
 			{ name: "twitter:card", content: "summary_large_image" },
 			{ name: "twitter:site", content: "https://pan.xiaozi.cc" },
 			{ name: "twitter:creator", content: "@towelong" },
@@ -62,7 +62,7 @@ export const Route = createRootRoute({
 				content:
 					"盘小子是专业的免费网盘资源搜索引擎，全面支持夸克网盘、百度网盘、阿里云盘等多个主流网盘平台的资源搜索与下载服务。提供快速精准的搜索体验，海量优质资源一键直达，界面简洁美观易用，完全免费且安全无广告无弹窗。",
 			},
-			{ name: "twitter:image", content: "/og.png" },
+			{ name: "twitter:image", content: "https://pan.xiaozi.cc/og.png" },
 		],
 		links: [
 			{
