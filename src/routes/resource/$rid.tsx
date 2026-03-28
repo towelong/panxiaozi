@@ -59,6 +59,23 @@ export const Route = createFileRoute("/resource/$rid")({
 		const data = await getResourceDetailServer({ data: { pinyin: rid } });
 		return data;
 	},
+	head: ({ loaderData }) => {
+		const meta: Record<string, string>[] = [
+			{ title: `${loaderData?.resource?.title} - 盘小子` },
+			{ name: "description", content: loaderData?.resource?.desc || "" },
+		];
+		
+		const links = [
+			{
+				rel: "canonical",
+				href: `https://pan.xiaozi.cc/resource/${loaderData?.resource?.pinyin}`,
+			},
+		];
+		return {
+			meta: meta,
+			links: links,
+		};
+	},
 	component: RouteComponent,
 });
 
