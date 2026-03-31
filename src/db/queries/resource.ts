@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like, or } from "drizzle-orm";
+import { and, count, desc, eq, like, ne } from "drizzle-orm";
 import { env } from "#/env";
 import type { PageResult } from "@/types";
 import { db } from "../index";
@@ -79,7 +79,9 @@ export async function getHotResourceCore(): Promise<string[]> {
 		const url = `${env.HOT_MOVIE_API}`;
 		const res = await fetch(url);
 		const result = await res.json();
-		list = result.data.map((item: { seriesInfo: { name: string } }) => item.seriesInfo.name);
+		list = result.data.map(
+			(item: { seriesInfo: { name: string } }) => item.seriesInfo.name,
+		);
 		if (list.length > 10) {
 			list = list.slice(0, 10);
 		}
@@ -178,113 +180,160 @@ export async function getResourceById(
 	return { ...list[0], diskList };
 }
 
-// 提取标题关键词（去除年份/季/集等冗余信息）
-function extractKeywords(rawTitle: string): string[] {
-	const lower = rawTitle
-		.toLowerCase()
-		// 去掉括号内容与中英文括号
-		.replace(/[\[\]【】()（）]/g, " ")
-		// 去掉季/集/部等标识，如 第1季 / 第10集 / 第2部
-		.replace(/第?\s*\d+\s*(季|集|部)/g, " ")
-		// 去掉英文季/集标识
-		.replace(/\b(season|s)\s*\d+\b/g, " ")
-		.replace(/\b(episode|ep)\s*\d+\b/g, " ")
-		// 去掉常见年份
-		.replace(/\b(19|20)\d{2}\b/g, " ")
-		// 去掉常见画质/无关短词
-		.replace(
-			/\b(4k|8k|1080p|720p|hdr|bluray|webrip|web-dl|x264|x265|hevc)\b/g,
-			" ",
-		)
-		// 归一非法字符为空格（保留字母数字与中文）
-		.replace(/[^\p{L}\p{N}]+/gu, " ")
-		.trim();
+function normalizeTitleForSimilarity(rawTitle: string): string {
+	return (
+		rawTitle
+			.toLowerCase()
+			// 去掉括号内容与中英文括号
+			.replace(/[\[\]【】()（）]/g, " ")
+			// 去掉季/集/部等标识，如 第1季 / 第10集 / 第2部
+			.replace(/第?\s*\d+\s*(季|集|部)/g, " ")
+			// 去掉英文季/集标识
+			.replace(/\b(season|s)\s*\d+\b/g, " ")
+			.replace(/\b(episode|ep)\s*\d+\b/g, " ")
+			// 去掉常见年份
+			.replace(/\b(19|20)\d{2}\b/g, " ")
+			// 去掉常见画质/无关短词
+			.replace(
+				/\b(4k|8k|1080p|720p|hdr|bluray|webrip|web-dl|x264|x265|hevc)\b/g,
+				" ",
+			)
+			// 归一非法字符为空格（保留字母数字与中文）
+			.replace(/[^\p{L}\p{N}]+/gu, " ")
+			.replace(/\s+/g, " ")
+			.trim()
+	);
+}
 
-	let tokens = lower.split(/\s+/).filter((t) => t.length >= 2);
+export function extractPrimaryTitle(rawTitle: string): string {
+	const normalized = rawTitle.replace(/\s+/g, " ").trim();
+	if (!normalized) return "";
 
-	// 去重并限制最多 8 个关键词，避免 SQL 过长
-	const seen = new Set<string>();
-	tokens = tokens
-		.filter((t) => {
-			if (seen.has(t)) return false;
-			seen.add(t);
-			return true;
-		})
-		.slice(0, 8);
+	// 优先取第一个片段，避免资源描述中的补充信息干扰标题识别
+	const firstSegment =
+		normalized
+			.split(/[\/|｜]/)
+			.map((s) => s.trim())
+			.find(Boolean) || normalized;
 
-	// 兜底：若没有分词到内容，截取原标题前缀
-	if (tokens.length === 0) {
-		const prefix = rawTitle.trim().slice(0, 8);
-		if (prefix) tokens = [prefix.toLowerCase()];
+	let text = firstSegment;
+	// 去掉前置标签，如【日漫】、[电影]
+	text = text.replace(/^(?:[【\[].*?[】\]]\s*)+/, "");
+	text = text.replace(/^(日漫|国漫|动漫|电影|电视剧|美剧|韩剧|日剧)\s+/, "");
+	// 去掉显式年份括号，如 (2025) / （2011）
+	text = text.replace(/[\(\[（【]\s*(19|20)\d{2}[^)\]）】]*[\)\]）】]/g, " ");
+	// 去掉集数类括号，如（63集）
+	text = text.replace(/[\(\[（【]\s*\d+\s*集[^)\]）】]*[\)\]）】]/g, " ");
+
+	const boundaryRules = [
+		/\s+(4k|8k|1080p|720p|2160p)\S*/i,
+		/\s+(全集|全\d+集|更\d+集|更新至?\d+集?)(?=\s|$)/,
+		/\s+(第?[一二三四五六七八九十百零两\d]+\s*(季|部|集)|\d+\s*季全)(?=\s|$)/,
+		/\s+(动画|剧场版|电影|电视剧|国漫|美剧|韩剧|日剧|高码|hdr|杜比)(?=\s|$)/i,
+	];
+
+	let cutIndex = text.length;
+	for (const rule of boundaryRules) {
+		const match = rule.exec(text);
+		if (match && typeof match.index === "number") {
+			cutIndex = Math.min(cutIndex, match.index);
+		}
 	}
 
-	return tokens;
+	text = text.slice(0, cutIndex);
+	text = text
+		.replace(/[^\p{L}\p{N}\s·:：\-]/gu, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	// 你要求的规则：中间有空格时按空格切分，只取第一个
+	if (text.includes(" ")) {
+		text = text.split(/\s+/)[0] || text;
+	}
+
+	// 兜底：提取失败时返回原首片段
+	if (text.length < 2) {
+		return firstSegment
+			.replace(/[^\p{L}\p{N}\s·:：\-]/gu, " ")
+			.replace(/\s+/g, " ")
+			.trim();
+	}
+	return text;
 }
 
 export async function getRelatedResources(
 	title: string,
-	categoryKey?: string,
+	_categoryKey?: string,
 	excludeId?: number,
 ): Promise<Resource[]> {
-	const tokens = extractKeywords(title);
+	const primaryTitle = extractPrimaryTitle(title);
+	const queryTitle = (primaryTitle || title).trim();
+	const CANDIDATE_LIMIT = 20;
 
-	// 构造 LIKE 条件
-	const likeConds = tokens.map((t) => like(resource.title, `%${t}%`));
+	// 标题为空或不可用时，兜底返回全站最新资源
+	if (!queryTitle) {
+		return await db
+			.select()
+			.from(resource)
+			.where(and(excludeId ? ne(resource.id, excludeId) : undefined))
+			.orderBy(
+				desc(resource.updatedAt),
+				desc(resource.hotNum),
+				desc(resource.id),
+			)
+			.limit(10);
+	}
 
-	// 先按同分类召回更多候选
-	const sameCategoryCandidates = await db
+	// 全量模糊召回，不按分类优先
+	const candidates = await db
 		.select()
 		.from(resource)
 		.where(
 			and(
-				categoryKey ? eq(resource.categoryKey, categoryKey) : undefined,
-				or(...likeConds),
+				excludeId ? ne(resource.id, excludeId) : undefined,
+				like(resource.title, `%${queryTitle}%`),
 			),
 		)
-		.orderBy(desc(resource.hotNum), desc(resource.updatedAt), desc(resource.id))
-		.limit(50);
+		.orderBy(desc(resource.updatedAt), desc(resource.hotNum), desc(resource.id))
+		.limit(CANDIDATE_LIMIT);
 
-	// 若不足，再跨分类补充
-	let crossCategoryCandidates: Resource[] = [];
-	if (sameCategoryCandidates.length < 20) {
-		crossCategoryCandidates = await db
-			.select()
-			.from(resource)
-			.where(and(categoryKey ? undefined : undefined, or(...likeConds)))
-			.orderBy(
-				desc(resource.hotNum),
-				desc(resource.updatedAt),
-				desc(resource.id),
-			)
-			.limit(50);
-	}
-
-	// 合并候选并去重
-	const all = [...sameCategoryCandidates, ...crossCategoryCandidates];
+	// 候选去重
 	const dedup = new Map<number, Resource>();
-	for (const it of all) {
-		if (excludeId && it.id === excludeId) continue;
+	for (const it of candidates) {
 		if (!dedup.has(it.id)) dedup.set(it.id, it);
 	}
 
-	// 评分：关键词命中数 + 前缀加权 + 同类加权 + 热度/时间微调
+	// 简单排序：精确匹配 > 前缀匹配 > 包含匹配，再按长度/热度/时间打平
 	const scored = Array.from(dedup.values()).map((it) => {
-		const t = it.title.toLowerCase();
-		let score = 0;
-		for (const k of tokens) {
-			if (t.includes(k)) score += 2;
-			if (t.startsWith(k)) score += 1;
-		}
-		if (categoryKey && it.categoryKey === categoryKey) score += 2;
-		// 微调：热度与更新时间（避免严格依赖 DB 排序，保持可读性）
-		score += Math.min(3, Math.floor((it.hotNum || 0) / 1000));
-		return { it, score };
+		const candidateTitle = normalizeTitleForSimilarity(it.title);
+		const isExact = candidateTitle === queryTitle ? 1 : 0;
+		const isPrefix = candidateTitle.startsWith(queryTitle) ? 1 : 0;
+		const isIncludes = candidateTitle.includes(queryTitle) ? 1 : 0;
+		const lengthGap = Math.abs(
+			candidateTitle.length - queryTitle.length,
+		);
+		const hotScore = it.hotNum || 0;
+		const updatedTs = it.updatedAt?.getTime?.() || 0;
+
+		return {
+			it,
+			isExact,
+			isPrefix,
+			isIncludes,
+			lengthGap,
+			hotScore,
+			updatedTs,
+		};
 	});
 
 	scored.sort(
 		(a, b) =>
-			b.score - a.score ||
-			(b.it.updatedAt?.getTime?.() || 0) - (a.it.updatedAt?.getTime?.() || 0),
+			b.isExact - a.isExact ||
+			b.isPrefix - a.isPrefix ||
+			b.isIncludes - a.isIncludes ||
+			a.lengthGap - b.lengthGap ||
+			b.hotScore - a.hotScore ||
+			b.updatedTs - a.updatedTs ||
+			b.it.id - a.it.id,
 	);
 
 	return scored.slice(0, 10).map((s) => s.it);

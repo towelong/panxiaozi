@@ -299,7 +299,6 @@ function RouteComponent() {
 											<DialogTrigger>
 												{mounted && (
 													<Button asChild>
-														{/** biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
 														<h3
 															className="bg-primary text-white px-1 py-1"
 															onClick={async () => {

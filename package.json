@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:extract-title": "tsx scripts/test-extract-primary-title.ts",
     "start": "node server/index.mjs",
     "format": "biome format",
     "lint": "biome lint",
