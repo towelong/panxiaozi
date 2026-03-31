@@ -18,6 +18,8 @@ import { cn } from "#/lib/utils";
 import { getResourceDetailServer, updateResource } from "#/server/resource";
 import { formatTime } from "#/utils/time";
 
+const SITE_URL = "https://pan.xiaozi.cc";
+
 const defaultResourceSearch = {
 	q: undefined,
 	category: undefined,
@@ -59,21 +61,105 @@ export const Route = createFileRoute("/resource/$rid")({
 		const data = await getResourceDetailServer({ data: { pinyin: rid } });
 		return data;
 	},
-	head: ({ loaderData }) => {
-		const meta: Record<string, string>[] = [
-			{ title: `${loaderData?.resource?.title} - 盘小子` },
-			{ name: "description", content: loaderData?.resource?.desc || "" },
-		];
-		
-		const links = [
-			{
-				rel: "canonical",
-				href: `https://pan.xiaozi.cc/resource/${loaderData?.resource?.pinyin}`,
-			},
-		];
+	head: ({ loaderData, params }) => {
+		const resource = loaderData?.resource;
+		const category = loaderData?.category;
+		const fallbackCanonical = `${SITE_URL}/resource/${params.rid}`;
+
+		if (!resource) {
+			return {
+				meta: [
+					{ title: "资源不存在 - 盘小子" },
+					{
+						name: "description",
+						content: "当前资源不存在、已下线或链接已失效。",
+					},
+					{ name: "robots", content: "noindex, nofollow" },
+				],
+				links: [{ rel: "canonical", href: fallbackCanonical }],
+			};
+		}
+
+		const canonicalHref = `${SITE_URL}/resource/${resource.pinyin}`;
+		const description =
+			resource.desc?.trim() ||
+			`${resource.title} 网盘资源详情，包含更新时间、分类和可用下载入口。`;
+		const breadcrumbSchema = {
+			"@context": "https://schema.org",
+			"@type": "BreadcrumbList",
+			itemListElement: [
+				{
+					"@type": "ListItem",
+					position: 1,
+					name: "首页",
+					item: SITE_URL,
+				},
+				{
+					"@type": "ListItem",
+					position: 2,
+					name: "资源",
+					item: `${SITE_URL}/resource`,
+				},
+				...(category?.name
+					? [
+							{
+								"@type": "ListItem",
+								position: 3,
+								name: category.name,
+								item: `${SITE_URL}/resource?category=${resource.categoryKey}`,
+							},
+						]
+					: []),
+				{
+					"@type": "ListItem",
+					position: category?.name ? 4 : 3,
+					name: resource.title,
+					item: canonicalHref,
+				},
+			],
+		};
+		const resourceSchema = {
+			"@context": "https://schema.org",
+			"@type": "CreativeWork",
+			name: resource.title,
+			description,
+			url: canonicalHref,
+			inLanguage: "zh-CN",
+			dateModified: resource.updatedAt?.toISOString(),
+		};
+
 		return {
-			meta: meta,
-			links: links,
+			meta: [
+				{ title: `${resource.title} - 盘小子` },
+				{ name: "description", content: description },
+				{ name: "robots", content: "index, follow" },
+				{ property: "og:type", content: "article" },
+				{ property: "og:title", content: `${resource.title} - 盘小子` },
+				{ property: "og:description", content: description },
+				{ property: "og:url", content: canonicalHref },
+				{
+					property: "og:image",
+					content: resource.cover || `${SITE_URL}/og.png`,
+				},
+				{ name: "twitter:card", content: "summary_large_image" },
+				{ name: "twitter:title", content: `${resource.title} - 盘小子` },
+				{ name: "twitter:description", content: description },
+				{
+					name: "twitter:image",
+					content: resource.cover || `${SITE_URL}/og.png`,
+				},
+			],
+			links: [{ rel: "canonical", href: canonicalHref }],
+			scripts: [
+				{
+					type: "application/ld+json",
+					children: JSON.stringify(breadcrumbSchema),
+				},
+				{
+					type: "application/ld+json",
+					children: JSON.stringify(resourceSchema),
+				},
+			],
 		};
 	},
 	component: RouteComponent,
@@ -98,7 +184,10 @@ function RouteComponent() {
 
 	return (
 		<div className="container mx-auto py-6 text-base">
-			<div className="flex items-center text-sm text-muted-foreground mb-4 overflow-hidden flex-nowrap px-2 md:px-0">
+			<nav
+				aria-label="面包屑"
+				className="flex items-center text-sm text-muted-foreground mb-4 overflow-hidden flex-nowrap px-2 md:px-0"
+			>
 				<Link to="/" className="hover:underline whitespace-nowrap shrink-0">
 					首页
 				</Link>
@@ -122,48 +211,50 @@ function RouteComponent() {
 				<span className="text-foreground truncate min-w-0 flex-1">
 					{resource.title}
 				</span>
-			</div>
+			</nav>
 
 			<Card>
-				<CardContent>
-					<div className="rounded-lg flex flex-col items-center md:flex-row md:items-start gap-6">
-						{resource.cover && (
-							<div className="min-w-[160px]">
-								<ImagePreview
-									src={resource.cover}
-									alt={resource.title}
-									className="w-[160px] h-auto object-cover rounded-md"
-								/>
-							</div>
-						)}
-						<div className="flex-1">
-							<h1
-								className={cn(
-									"text-2xl font-bold mb-6",
-									resource.cover ? "text-left" : " text-center",
-								)}
-							>
-								{resource.title}
-							</h1>
-
-							<div className="space-y-4">
-								<div className="flex flex-col">
-									<span className="font-medium mb-2">资源描述:</span>
-									<p className="text-muted-foreground break-all md:break-words whitespace-pre-line">
-										{resource.desc}
-									</p>
+				<article>
+					<CardContent>
+						<div className="rounded-lg flex flex-col items-center md:flex-row md:items-start gap-6">
+							{resource.cover && (
+								<div className="min-w-[160px]">
+									<ImagePreview
+										src={resource.cover}
+										alt={resource.title}
+										className="w-[160px] h-auto object-cover rounded-md"
+									/>
 								</div>
+							)}
+							<div className="flex-1">
+								<h1
+									className={cn(
+										"text-2xl font-bold mb-6",
+										resource.cover ? "text-left" : " text-center",
+									)}
+								>
+									{resource.title}
+								</h1>
 
-								<div className="flex items-center">
-									<span className="font-medium mr-2">更新时间:</span>
-									<span className="text-muted-foreground">
-										{formatTime(resource.updatedAt?.toISOString() || "")}
-									</span>
+								<div className="space-y-4">
+									<div className="flex flex-col">
+										<span className="font-medium mb-2">资源描述:</span>
+										<p className="text-muted-foreground break-all md:break-words whitespace-pre-line">
+											{resource.desc}
+										</p>
+									</div>
+
+									<div className="flex items-center">
+										<span className="font-medium mr-2">更新时间:</span>
+										<span className="text-muted-foreground">
+											{formatTime(resource.updatedAt?.toISOString() || "")}
+										</span>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</CardContent>
+					</CardContent>
+				</article>
 			</Card>
 			<Card>
 				<CardContent>

@@ -6,9 +6,9 @@ import { formatTime } from "#/utils/time";
 export const Route = createFileRoute("/sitemap/$index.xml")({
 	server: {
 		handlers: {
-			GET: async ({ request, params }) => {
+			GET: async ({ params }) => {
 				const indexStr = params["index.xml"];
-				const index = parseInt(indexStr.replaceAll(".xml", ""));
+				const index = parseInt(indexStr.replaceAll(".xml", ""), 10);
 				let urls = [];
 				if (index === 1) {
 					const now = formatTime(new Date().toISOString(), "YYYY-MM-DD");

@@ -33,7 +33,7 @@ export const Route = createRootRoute({
 					"盘小子,网盘搜索,夸克网盘,百度网盘,阿里云盘,免费资源搜索,网盘资源下载,网盘搜索引擎,云盘搜索,网盘资源,资源分享,文件搜索,网盘聚合",
 			},
 			{ name: "robots", content: "index, follow" },
-			{ name: "author", content: import.meta.env.VITE_SITE_NAME || "小字网盘" },
+			{ name: "author", content: import.meta.env.VITE_SITE_NAME || "盘小子" },
 			{
 				property: "og:title",
 				content:
@@ -69,7 +69,6 @@ export const Route = createRootRoute({
 				rel: "stylesheet",
 				href: appCss,
 			},
-			{ rel: "canonical", href: "https://pan.xiaozi.cc" },
 			{ rel: "icon", href: "/favicon.ico" },
 			{ rel: "apple-touch-icon", href: "/icons/icon-192x192.png" },
 			{ rel: "manifest", href: "/manifest.json" },
@@ -91,7 +90,7 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="zh-CN" suppressHydrationWarning>
 			<head>
 				{/** biome-ignore lint/security/noDangerouslySetInnerHtml: We control this script */}
 				<script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

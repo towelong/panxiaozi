@@ -20,6 +20,8 @@ import { cn } from "#/lib/utils";
 import { getResourcePageListServer } from "#/server/resource";
 import { formatTime } from "#/utils/time";
 
+const SITE_URL = "https://pan.xiaozi.cc";
+
 export const Route = createFileRoute("/resource")({
 	validateSearch: (search) =>
 		search as {
@@ -62,40 +64,77 @@ export const Route = createFileRoute("/resource")({
 		};
 	},
 	head: ({ loaderData }) => {
-		const description =
-			"盘小子是一个一站式网盘资源搜索引擎，支持夸克网盘、百度网盘、阿里云盘等多平台，快速精准搜索，一键直达";
-		const descMeta = {
-			name: "description",
-			content: description,
-		};
-		let meta: Record<string, string>[] = [
-			{ title: `在线网盘资源搜索下载 - 盘小子` },
-		];
-		const query = loaderData?.q;
+		const query = loaderData?.q?.trim();
 		const category = loaderData?.category;
+		const currentPage = loaderData?.page ?? 1;
+		const totalPages = loaderData?.totalPages ?? 1;
+		const categoryLabel =
+			category && loaderData?.categories
+				? getCategoryLabel(loaderData.categories, category)
+				: "全部";
+		const titleSegments = [];
+		if (query) titleSegments.push(`“${query}”`);
+		if (category && category !== "all") titleSegments.push(categoryLabel);
+		const titlePrefix =
+			titleSegments.length > 0
+				? `${titleSegments.join(" ")} 资源`
+				: "网盘资源列表";
+		const title =
+			currentPage > 1
+				? `${titlePrefix} - 第 ${currentPage} 页 - 盘小子`
+				: `${titlePrefix} - 盘小子`;
+		const description = query
+			? `盘小子为你展示与“${query}”相关的网盘资源结果，支持分类筛选与分页浏览。`
+			: `浏览盘小子的网盘资源列表，支持按分类筛选并查看最新更新内容。`;
+		const robots = query ? "noindex, follow" : "index, follow";
 
-		if (query && category) {
-			const categoryLabel = getCategoryLabel(loaderData.categories, category);
-			meta = [
-				{ title: `${query}${categoryLabel}在线网盘资源搜索下载 - 盘小子` },
-			];
-		} else if (query) {
-			meta = [{ title: `${query}在线网盘资源搜索下载 - 盘小子` }];
-		} else if (category) {
-			const categoryLabel = getCategoryLabel(loaderData.categories, category);
-			meta = [{ title: `${categoryLabel}在线网盘资源搜索下载 - 盘小子` }];
+		const canonicalParams = new URLSearchParams();
+		if (!query) {
+			if (category && category !== "all") {
+				canonicalParams.set("category", category);
+			}
+			if (currentPage > 1) {
+				canonicalParams.set("page", String(currentPage));
+			}
 		}
-		meta.push(descMeta);
-		let links = [];
-		links = [
+
+		const buildPageHref = (page: number) => {
+			const params = new URLSearchParams();
+			if (query) params.set("q", query);
+			if (category && category !== "all") params.set("category", category);
+			if (page > 1) params.set("page", String(page));
+			const search = params.toString();
+			return search ? `${SITE_URL}/resource?${search}` : `${SITE_URL}/resource`;
+		};
+
+		const canonicalSearch = canonicalParams.toString();
+		const canonicalHref = canonicalSearch
+			? `${SITE_URL}/resource?${canonicalSearch}`
+			: `${SITE_URL}/resource`;
+		const links: Record<string, string>[] = [
 			{
 				rel: "canonical",
-				href: `https://pan.xiaozi.cc/resource`,
+				href: canonicalHref,
 			},
 		];
+		if (currentPage > 1) {
+			links.push({ rel: "prev", href: buildPageHref(currentPage - 1) });
+		}
+		if (currentPage < totalPages) {
+			links.push({ rel: "next", href: buildPageHref(currentPage + 1) });
+		}
+
 		return {
-			meta: meta,
-			links: links,
+			meta: [
+				{ title },
+				{ name: "description", content: description },
+				{ name: "robots", content: robots },
+				{ property: "og:type", content: "website" },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: description },
+				{ property: "og:url", content: canonicalHref },
+			],
+			links,
 		};
 	},
 	component: RouteComponent,
@@ -151,7 +190,7 @@ function RouteComponent() {
 		(query: string) => {
 			navigate({
 				to: "/resource",
-				search: { ...search, q: query },
+				search: { ...search, q: query || undefined, page: 1 },
 			});
 		},
 		[navigate, search],
@@ -175,8 +214,9 @@ function RouteComponent() {
 		<div className="container mx-auto px-4 py-6 md:px-0 text-base">
 			<div className="flex flex-col gap-4 mb-4">
 				<div className="flex items-center justify-between gap-4 flex-wrap">
-					<h1 className="sr-only">盘小子资源</h1>
-					<h2 className="text-xl font-bold">资源</h2>
+					<h1 className="text-xl font-bold">
+						{search.q ? `“${search.q}” 相关资源` : "资源列表"}
+					</h1>
 					<div className="text-sm text-muted-foreground">
 						{activeCategoryLabel}
 						{search.q ? (
@@ -189,9 +229,22 @@ function RouteComponent() {
 						<span>共 {data.total} 条</span>
 					</div>
 				</div>
-				<div className="flex items-center">
+				<form
+					role="search"
+					aria-label="资源列表搜索"
+					className="flex items-center"
+					onSubmit={(e) => {
+						e.preventDefault();
+						submitSearch(keyword.trim());
+					}}
+				>
+					<label htmlFor="resource-search-input" className="sr-only">
+						资源关键词
+					</label>
 					<div className="relative flex-1">
 						<Input
+							id="resource-search-input"
+							name="q"
 							value={keyword}
 							placeholder="请输入关键词搜索"
 							className="h-10 pl-9 pr-10"
@@ -216,8 +269,8 @@ function RouteComponent() {
 							</button>
 						)}
 					</div>
-					<Button onClick={() => submitSearch(keyword)}>搜索</Button>
-				</div>
+					<Button type="submit">搜索</Button>
+				</form>
 			</div>
 
 			<Card className="mb-6">
@@ -258,57 +311,65 @@ function RouteComponent() {
 				) : (
 					data.resources.map((r) => (
 						<Card key={r.id} size="sm">
-							<CardContent className="py-1">
-								<div className="flex items-start gap-4">
-									{r.cover ? (
-										<img
-											src={r.cover}
-											alt={r.title}
-											className="w-28 h-42 md:w-40 md:h-56  object-cover rounded-md border bg-muted shrink-0"
-											loading="lazy"
-										/>
-									) : null}
-									<div className="min-w-0 flex-1 flex flex-col justify-between">
-										<div className="flex items-center justify-between gap-2">
-											<Link
-												to="/resource/$rid"
-												params={{ rid: r.pinyin }}
-												search={{
-													q: undefined,
-													category: undefined,
-													page: undefined,
-												}}
-												className="font-semibold text-base hover:text-primary hover:underline line-clamp-1"
-											>
-												<h2>{r.title}</h2>
-											</Link>
-											<span className="text-xs text-muted-foreground shrink-0">
-												{formatTime(
-													r.updatedAt?.toISOString() || "",
-													"YYYY-MM-DD",
-												)}
-											</span>
-										</div>
+							<article>
+								<CardContent className="py-1">
+									<div className="flex items-start gap-4">
+										{r.cover ? (
+											<img
+												src={r.cover}
+												alt={r.title}
+												className="w-28 h-42 md:w-40 md:h-56  object-cover rounded-md border bg-muted shrink-0"
+												loading="lazy"
+											/>
+										) : null}
+										<div className="min-w-0 flex-1 flex flex-col justify-between">
+											<div className="flex items-center justify-between gap-2">
+												<h2 className="font-semibold text-base line-clamp-1">
+													<Link
+														to="/resource/$rid"
+														params={{ rid: r.pinyin }}
+														search={{
+															q: undefined,
+															category: undefined,
+															page: undefined,
+														}}
+														className="hover:text-primary hover:underline"
+													>
+														{r.title}
+													</Link>
+												</h2>
+												<span className="text-xs text-muted-foreground shrink-0">
+													{formatTime(
+														r.updatedAt?.toISOString() || "",
+														"YYYY-MM-DD",
+													)}
+												</span>
+											</div>
 
-										<div className="text-sm text-muted-foreground line-clamp-4 leading-relaxed mt-1">
-											{r.desc}
-										</div>
+											<div className="text-sm text-muted-foreground line-clamp-4 leading-relaxed mt-1">
+												{r.desc}
+											</div>
 
-										<div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground flex-wrap">
-											<Link
-												to="/resource"
-												search={{ ...search, category: r.categoryKey, page: 1 }}
-												className="px-2 py-0.5 rounded-full border bg-background hover:bg-muted transition-colors"
-											>
-												{getCategoryLabel(data.categories, r.categoryKey)}
-											</Link>
-											<span className="px-2 py-0.5 rounded-full border bg-background">
-												{r.diskType}
-											</span>
+											<div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground flex-wrap">
+												<Link
+													to="/resource"
+													search={{
+														...search,
+														category: r.categoryKey,
+														page: 1,
+													}}
+													className="px-2 py-0.5 rounded-full border bg-background hover:bg-muted transition-colors"
+												>
+													{getCategoryLabel(data.categories, r.categoryKey)}
+												</Link>
+												<span className="px-2 py-0.5 rounded-full border bg-background">
+													{r.diskType}
+												</span>
+											</div>
 										</div>
 									</div>
-								</div>
-							</CardContent>
+								</CardContent>
+							</article>
 						</Card>
 					))
 				)}

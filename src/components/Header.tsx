@@ -18,7 +18,6 @@ const navItems = [
 ];
 
 export default function Header() {
-
 	const [open, setOpen] = useState(false);
 	const { pathname } = useLocation();
 
@@ -35,7 +34,7 @@ export default function Header() {
 						<img src="/logo.svg" alt="盘小子" className="h-8 w-8" />
 						<span className="text-xl font-bold text-primary">盘小子</span>
 					</Link>
-					<nav className="hidden md:flex">
+					<nav aria-label="主导航" className="hidden md:flex">
 						<ul className="flex gap-5">
 							{navItems.map((item) => {
 								const isActive =
@@ -65,7 +64,10 @@ export default function Header() {
 					{/* 主题切换：右侧按钮 */}
 					<ThemeToggle />
 					<Sheet open={open} onOpenChange={setOpen}>
-						<SheetTrigger asChild className="sm:hidden flex justify-center items-center">
+						<SheetTrigger
+							asChild
+							className="sm:hidden flex justify-center items-center"
+						>
 							<Button variant="ghost" size="icon" aria-label="菜单">
 								<IconMenu2 className="h-4 w-4" />
 							</Button>
@@ -79,29 +81,31 @@ export default function Header() {
 								<SheetTitle>盘小子</SheetTitle>
 							</SheetHeader>
 							<div className="overflow-y-auto px-6 pb-2">
-								<ul className="space-y-8">
-									{navItems.map((item) => {
-										const isActive =
-											pathname === item.href ||
-											(item.href !== "/" && pathname?.startsWith(item.href));
+								<nav aria-label="移动端导航">
+									<ul className="space-y-8">
+										{navItems.map((item) => {
+											const isActive =
+												pathname === item.href ||
+												(item.href !== "/" && pathname?.startsWith(item.href));
 
-										return (
-											<li key={item.href}>
-												<Link
-													to={item.href}
-													title={item.label}
-													className={`font-medium text-base py-1 ${
-														isActive
-															? "text-primary font-bold"
-															: "text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary"
-													}`}
-												>
-													{item.label}
-												</Link>
-											</li>
-										);
-									})}
-								</ul>
+											return (
+												<li key={item.href}>
+													<Link
+														to={item.href}
+														title={item.label}
+														className={`font-medium text-base py-1 ${
+															isActive
+																? "text-primary font-bold"
+																: "text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary"
+														}`}
+													>
+														{item.label}
+													</Link>
+												</li>
+											);
+										})}
+									</ul>
+								</nav>
 							</div>
 						</SheetContent>
 					</Sheet>

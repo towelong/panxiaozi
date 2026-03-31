@@ -1,15 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ImagePreview } from "#/components/ImagePreview";
 
+const SITE_URL = "https://pan.xiaozi.cc";
+
 export const Route = createFileRoute("/contact")({
+	head: () => {
+		const title = "联系我们 - 盘小子";
+		const description =
+			"盘小子联系方式与侵权反馈渠道。若发现资源问题，可通过邮箱联系站点处理。";
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: description },
+				{ name: "robots", content: "index, follow" },
+				{ property: "og:type", content: "website" },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: description },
+				{ property: "og:url", content: `${SITE_URL}/contact` },
+			],
+			links: [{ rel: "canonical", href: `${SITE_URL}/contact` }],
+		};
+	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	return (
-		<div className="min-h-[65vh] w-full flex flex-col items-center px-4 py-12">
+		<main className="min-h-[65vh] w-full flex flex-col items-center px-4 py-12">
 			<h1 className="text-3xl font-bold mb-8 text-center">联系我们</h1>
-			<div className="prose prose-lg mx-auto">
+			<section className="prose prose-lg mx-auto">
 				<p className="mb-4">
 					盘小子致力于打造一站式网盘资源搜索平台。我们仅提供搜索服务，不存储、上传或分发任何网盘内容。
 				</p>
@@ -30,10 +49,10 @@ function RouteComponent() {
 					</a>
 					，我们将及时处理。
 				</p>
-				<p className="flex justify-center items-center">
+				<div className="flex justify-center items-center">
 					<ImagePreview src="/wechat.jpg" alt="小付同学的开发日常" />
-				</p>
-			</div>
-		</div>
+				</div>
+			</section>
+		</main>
 	);
 }

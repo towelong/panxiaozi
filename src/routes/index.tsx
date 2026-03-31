@@ -90,6 +90,8 @@ const faqItems = [
 	},
 ];
 
+const SITE_URL = "https://pan.xiaozi.cc";
+
 export const Route = createFileRoute("/")({
 	loader: async () => {
 		const hotResources = await getHotResourceServer();
@@ -97,6 +99,47 @@ export const Route = createFileRoute("/")({
 	},
 	staleTime: 5 * 60 * 1000,
 	gcTime: 5 * 60 * 1000,
+	head: () => {
+		const title = "盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台";
+		const description =
+			"盘小子聚合夸克网盘、百度网盘、阿里云盘等多平台资源，支持关键词快速检索与热门内容发现。";
+		const faqSchema = {
+			"@context": "https://schema.org",
+			"@type": "FAQPage",
+			mainEntity: faqItems.map((item) => ({
+				"@type": "Question",
+				name: item.question,
+				acceptedAnswer: {
+					"@type": "Answer",
+					text: item.answer,
+				},
+			})),
+		};
+
+		return {
+			meta: [
+				{ title },
+				{ name: "description", content: description },
+				{ name: "robots", content: "index, follow" },
+				{ property: "og:type", content: "website" },
+				{ property: "og:title", content: title },
+				{ property: "og:description", content: description },
+				{ property: "og:url", content: SITE_URL },
+				{ property: "og:image", content: `${SITE_URL}/og.png` },
+				{ name: "twitter:card", content: "summary_large_image" },
+				{ name: "twitter:title", content: title },
+				{ name: "twitter:description", content: description },
+				{ name: "twitter:image", content: `${SITE_URL}/og.png` },
+			],
+			links: [{ rel: "canonical", href: SITE_URL }],
+			scripts: [
+				{
+					type: "application/ld+json",
+					children: JSON.stringify(faqSchema),
+				},
+			],
+		};
+	},
 	component: App,
 });
 
@@ -108,74 +151,98 @@ function App() {
 
 	return (
 		<main className="bg-blue-50 dark:bg-blue-900/10 py-12 px-4 md:px-0 flex justify-center">
-			<div className="container grid grid-cols-1 md:grid-cols-1 gap-8 items-center flex-col">
-				<div className="space-y-6">
-					<div className="space-y-6 ">
-						<div className="flex items-center gap-2 justify-center">
-							<img src={"/logo.svg"} alt="logo" className="w-8 h-8" />
-							<h1 className="text-2xl font-bold text-primary">盘小子</h1>
-							<span className="text-gray-700 dark:text-muted-foreground">
-								已收录
-							</span>
-							<span className="text-primary font-bold">{data.count}</span>
-							<span className="text-gray-700 dark:text-muted-foreground">
-								个高质量资源
-							</span>
-						</div>
-						<div className="flex items-center">
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<IconSearch />
-								</InputGroupAddon>
-								<InputGroupInput
-									value={keyword}
-									onChange={(e) => setKeyword(e.target.value)}
-									placeholder="请输入关键词搜索"
-								/>
-							</InputGroup>
-							<Button
-								onClick={() =>
-									navigate({
-										to: "/resource",
-										search: {
-											q: keyword,
-										},
-									})
-								}
-							>
-								搜索
-							</Button>
-						</div>
+			<div className="container grid grid-cols-1 gap-8 items-center">
+				<header className="space-y-4 text-center">
+					<div className="flex items-center gap-2 justify-center">
+						<img src="/logo.svg" alt="盘小子" className="w-8 h-8" />
+						<span className="text-2xl font-bold text-primary">盘小子</span>
 					</div>
+					<h1 className="text-2xl md:text-3xl font-bold">
+						免费网盘资源搜索引擎
+					</h1>
+					<p className="text-sm text-gray-700 dark:text-muted-foreground">
+						聚合夸克网盘、百度网盘、阿里云盘等平台资源，快速定位你需要的内容。
+					</p>
+					<p className="text-sm text-gray-700 dark:text-muted-foreground">
+						已收录 <strong className="text-primary">{data.count}</strong>{" "}
+						个高质量资源
+					</p>
+				</header>
+
+				<section aria-labelledby="search-heading" className="space-y-3">
+					<h2 id="search-heading" className="sr-only">
+						站内搜索
+					</h2>
+					<form
+						role="search"
+						aria-label="网盘资源搜索"
+						className="flex items-center"
+						onSubmit={(e) => {
+							e.preventDefault();
+							const query = keyword.trim();
+							navigate({
+								to: "/resource",
+								search: {
+									q: query || undefined,
+									page: 1,
+								},
+							});
+						}}
+					>
+						<label htmlFor="home-search-input" className="sr-only">
+							请输入关键词搜索
+						</label>
+						<InputGroup>
+							<InputGroupAddon align="inline-start">
+								<IconSearch />
+							</InputGroupAddon>
+							<InputGroupInput
+								id="home-search-input"
+								name="q"
+								value={keyword}
+								onChange={(e) => setKeyword(e.target.value)}
+								placeholder="请输入关键词搜索"
+							/>
+						</InputGroup>
+						<Button type="submit">搜索</Button>
+					</form>
+				</section>
+
+				<section aria-labelledby="hot-search-heading">
 					<Card className="h-full">
 						<CardContent className="h-full">
 							<div className="flex items-center justify-between mb-4">
-								<h2 className="font-bold">热门搜索</h2>
+								<h2 id="hot-search-heading" className="font-bold">
+									热门搜索
+								</h2>
 							</div>
 							<ul className="grid grid-cols-2 gap-x-4 gap-y-3">
 								{data.hotResources.map((item, index) => (
 									<li key={item}>
 										<Link
 											to="/resource"
-											search={{ q: item }}
+											search={{ q: item, page: 1 }}
 											title={item}
 											className="flex items-center gap-2 group"
 										>
 											<span className="text-xs block text-orange-500 font-bold min-w-4">
 												{index + 1}
 											</span>
-											<h2 className="text-sm group-hover:text-primary text-gray-700 dark:text-muted-foreground line-clamp-1">
+											<span className="text-sm group-hover:text-primary text-gray-700 dark:text-muted-foreground line-clamp-1">
 												{item}
-											</h2>
+											</span>
 										</Link>
 									</li>
 								))}
 							</ul>
 						</CardContent>
 					</Card>
-				</div>
-				<div className="space-y-6">
-					<h2 className="text-xl font-bold text-center">为什么使用盘小子</h2>
+				</section>
+
+				<section aria-labelledby="why-heading" className="space-y-6">
+					<h2 id="why-heading" className="text-xl font-bold text-center">
+						为什么使用盘小子
+					</h2>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
 						{landingHighlights.map((item) => (
 							<Card key={item.title}>
@@ -188,9 +255,12 @@ function App() {
 							</Card>
 						))}
 					</div>
-				</div>
-				<div className="space-y-6">
-					<h2 className="text-xl font-bold text-center mt-2">3 步快速上手</h2>
+				</section>
+
+				<section aria-labelledby="steps-heading" className="space-y-6">
+					<h2 id="steps-heading" className="text-xl font-bold text-center mt-2">
+						3 步快速上手
+					</h2>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						{quickSteps.map((step, index) => (
 							<Card key={step.title}>
@@ -206,9 +276,12 @@ function App() {
 							</Card>
 						))}
 					</div>
-				</div>
-				<div className="space-y-6">
-					<h2 className="text-xl font-bold text-center mt-2">常见问题 FAQ</h2>
+				</section>
+
+				<section aria-labelledby="faq-heading" className="space-y-6">
+					<h2 id="faq-heading" className="text-xl font-bold text-center mt-2">
+						常见问题 FAQ
+					</h2>
 					<Accordion
 						type="single"
 						collapsible
@@ -225,11 +298,14 @@ function App() {
 							</AccordionItem>
 						))}
 					</Accordion>
-				</div>
-				<div>
+				</section>
+
+				<section aria-labelledby="cta-heading">
 					<Card className="border-primary/20 bg-gradient-to-r from-blue-100/80 to-sky-100/80 dark:from-blue-900/30 dark:to-sky-900/20">
 						<CardContent className="py-8 text-center space-y-4">
-							<h2 className="text-2xl font-bold">开始下一次高效搜索</h2>
+							<h2 id="cta-heading" className="text-2xl font-bold">
+								开始下一次高效搜索
+							</h2>
 							<p className="text-sm text-gray-700 dark:text-muted-foreground">
 								现在就搜索你的关键词，快速找到更有价值的资源。
 							</p>
@@ -238,7 +314,6 @@ function App() {
 									onClick={() =>
 										navigate({
 											to: "/resource",
-											search: { q: keyword },
 										})
 									}
 								>
@@ -250,9 +325,8 @@ function App() {
 							</div>
 						</CardContent>
 					</Card>
-				</div>
+				</section>
 			</div>
-			<div></div>
 		</main>
 	);
 }

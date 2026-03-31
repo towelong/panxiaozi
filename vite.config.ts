@@ -22,7 +22,7 @@ const config = defineConfig({
 			registerType: "autoUpdate",
 			includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
 			manifest: {
-				name: "盘小子 - 免费网盘资源搜索引擎",
+				name: "盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台",
 				short_name: "盘小子",
 				description:
 					"盘小子是一个一站式网盘资源搜索引擎，支持夸克网盘、百度网盘、阿里云盘等多平台，快速精准搜索，一键直达",
