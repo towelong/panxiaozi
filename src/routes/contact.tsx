@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ImagePreview } from "#/components/ImagePreview";
-
-const SITE_URL = "https://pan.xiaozi.cc";
+import { SITE_URL } from "#/lib/seo";
 
 export const Route = createFileRoute("/contact")({
 	head: () => {

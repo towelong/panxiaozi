@@ -16,11 +16,10 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
 import type { Category } from "#/db/schema";
+import { buildCanonicalUrl } from "#/lib/seo";
 import { cn } from "#/lib/utils";
 import { getResourcePageListServer } from "#/server/resource";
 import { formatTime } from "#/utils/time";
-
-const SITE_URL = "https://pan.xiaozi.cc";
 
 export const Route = createFileRoute("/resource")({
 	validateSearch: (search) =>
@@ -63,10 +62,18 @@ export const Route = createFileRoute("/resource")({
 			category: search.category,
 		};
 	},
-	head: ({ loaderData }) => {
-		const query = loaderData?.q?.trim();
-		const category = loaderData?.category;
-		const currentPage = loaderData?.page ?? 1;
+	head: ({ loaderData, match, matches }) => {
+		const isResourceDetail = matches.some(
+			// @ts-ignore
+			(currentMatch) => currentMatch.routeId === "/resource/$rid",
+		);
+		if (isResourceDetail) {
+			return {};
+		}
+
+		const query = match.search.q?.trim();
+		const category = match.search.category;
+		const currentPage = match.search.page ?? 1;
 		const totalPages = loaderData?.totalPages ?? 1;
 		const categoryLabel =
 			category && loaderData?.categories
@@ -88,29 +95,14 @@ export const Route = createFileRoute("/resource")({
 			: `浏览盘小子的网盘资源列表，支持按分类筛选并查看最新更新内容。`;
 		const robots = query ? "noindex, follow" : "index, follow";
 
-		const canonicalParams = new URLSearchParams();
-		if (!query) {
-			if (category && category !== "all") {
-				canonicalParams.set("category", category);
-			}
-			if (currentPage > 1) {
-				canonicalParams.set("page", String(currentPage));
-			}
-		}
-
 		const buildPageHref = (page: number) => {
-			const params = new URLSearchParams();
-			if (query) params.set("q", query);
-			if (category && category !== "all") params.set("category", category);
-			if (page > 1) params.set("page", String(page));
-			const search = params.toString();
-			return search ? `${SITE_URL}/resource?${search}` : `${SITE_URL}/resource`;
+			return buildCanonicalUrl(match.pathname, {
+				...match.search,
+				page: page > 1 ? page : undefined,
+			});
 		};
 
-		const canonicalSearch = canonicalParams.toString();
-		const canonicalHref = canonicalSearch
-			? `${SITE_URL}/resource?${canonicalSearch}`
-			: `${SITE_URL}/resource`;
+		const canonicalHref = buildCanonicalUrl(match.pathname, match.search);
 		const links: Record<string, string>[] = [
 			{
 				rel: "canonical",

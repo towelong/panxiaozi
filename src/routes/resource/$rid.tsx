@@ -14,11 +14,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#/components/ui/dialog";
+import { buildCanonicalUrl, SITE_URL } from "#/lib/seo";
 import { cn } from "#/lib/utils";
 import { getResourceDetailServer, updateResource } from "#/server/resource";
 import { formatTime } from "#/utils/time";
-
-const SITE_URL = "https://pan.xiaozi.cc";
 
 const defaultResourceSearch = {
 	q: undefined,
@@ -61,10 +60,10 @@ export const Route = createFileRoute("/resource/$rid")({
 		const data = await getResourceDetailServer({ data: { pinyin: rid } });
 		return data;
 	},
-	head: ({ loaderData, params }) => {
+	head: ({ loaderData, match }) => {
 		const resource = loaderData?.resource;
 		const category = loaderData?.category;
-		const fallbackCanonical = `${SITE_URL}/resource/${params.rid}`;
+		const canonicalHref = buildCanonicalUrl(match.pathname);
 
 		if (!resource) {
 			return {
@@ -76,11 +75,9 @@ export const Route = createFileRoute("/resource/$rid")({
 					},
 					{ name: "robots", content: "noindex, nofollow" },
 				],
-				links: [{ rel: "canonical", href: fallbackCanonical }],
+				links: [{ rel: "canonical", href: canonicalHref }],
 			};
 		}
-
-		const canonicalHref = `${SITE_URL}/resource/${resource.pinyin}`;
 		const description =
 			resource.desc?.trim() ||
 			`${resource.title} 网盘资源详情，包含更新时间、分类和可用下载入口。`;

@@ -14,6 +14,7 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from "#/components/ui/input-group";
+import { SITE_URL } from "#/lib/seo";
 import { getHotResourceServer } from "@/server/resource";
 
 const landingHighlights = [
@@ -89,8 +90,6 @@ const faqItems = [
 			"你可以通过站内联系方式反馈问题，我们会根据反馈持续优化资源词和排序质量。",
 	},
 ];
-
-const SITE_URL = "https://pan.xiaozi.cc";
 
 export const Route = createFileRoute("/")({
 	loader: async () => {
