@@ -14,7 +14,12 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "#/components/ui/dialog";
-import { buildCanonicalUrl, SITE_URL } from "#/lib/seo";
+import {
+	buildCanonicalUrl,
+	buildSeoTitle,
+	NETDISK_TITLE_FILLERS,
+	SITE_URL,
+} from "#/lib/seo";
 import { cn } from "#/lib/utils";
 import { getResourceDetailServer, updateResource } from "#/server/resource";
 import { formatTime } from "#/utils/time";
@@ -81,6 +86,7 @@ export const Route = createFileRoute("/resource/$rid")({
 		const description =
 			resource.desc?.trim() ||
 			`${resource.title} 网盘资源详情，包含更新时间、分类和可用下载入口。`;
+		const title = buildSeoTitle(resource.title, NETDISK_TITLE_FILLERS);
 		const breadcrumbSchema = {
 			"@context": "https://schema.org",
 			"@type": "BreadcrumbList",
@@ -127,11 +133,11 @@ export const Route = createFileRoute("/resource/$rid")({
 
 		return {
 			meta: [
-				{ title: `${resource.title} - 盘小子` },
+				{ title },
 				{ name: "description", content: description },
 				{ name: "robots", content: "index, follow" },
 				{ property: "og:type", content: "article" },
-				{ property: "og:title", content: `${resource.title} - 盘小子` },
+				{ property: "og:title", content: title },
 				{ property: "og:description", content: description },
 				{ property: "og:url", content: canonicalHref },
 				{
@@ -139,7 +145,7 @@ export const Route = createFileRoute("/resource/$rid")({
 					content: resource.cover || `${SITE_URL}/og.png`,
 				},
 				{ name: "twitter:card", content: "summary_large_image" },
-				{ name: "twitter:title", content: `${resource.title} - 盘小子` },
+				{ name: "twitter:title", content: title },
 				{ name: "twitter:description", content: description },
 				{
 					name: "twitter:image",

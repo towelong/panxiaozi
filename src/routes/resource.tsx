@@ -16,7 +16,11 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
 import type { Category } from "#/db/schema";
-import { buildCanonicalUrl } from "#/lib/seo";
+import {
+	buildCanonicalUrl,
+	buildSeoTitle,
+	NETDISK_TITLE_FILLERS,
+} from "#/lib/seo";
 import { cn } from "#/lib/utils";
 import { getResourcePageListServer } from "#/server/resource";
 import { formatTime } from "#/utils/time";
@@ -79,21 +83,19 @@ export const Route = createFileRoute("/resource")({
 			category && loaderData?.categories
 				? getCategoryLabel(loaderData.categories, category)
 				: "全部";
-		const titleSegments = [];
-		if (query) titleSegments.push(`“${query}”`);
-		if (category && category !== "all") titleSegments.push(categoryLabel);
-		const titlePrefix =
-			titleSegments.length > 0
-				? `${titleSegments.join(" ")} 资源`
+		const titlePrefix = query
+			? `“${query}”搜索结果`
+			: category && category !== "all"
+				? `${categoryLabel}资源列表`
 				: "网盘资源列表";
-		const title =
-			currentPage > 1
-				? `${titlePrefix} - 第 ${currentPage} 页 - 盘小子`
-				: `${titlePrefix} - 盘小子`;
+		const title = buildSeoTitle(
+			currentPage > 1 ? `${titlePrefix}_第${currentPage}页` : titlePrefix,
+			NETDISK_TITLE_FILLERS,
+		);
 		const description = query
-			? `盘小子为你展示与“${query}”相关的网盘资源结果，支持分类筛选与分页浏览。`
-			: `浏览盘小子的网盘资源列表，支持按分类筛选并查看最新更新内容。`;
-		const robots = query ? "noindex, follow" : "index, follow";
+			? `盘小子为你展示与“${query}”相关的夸克网盘、百度网盘、阿里云盘资源，支持分类筛选与分页浏览。`
+			: `浏览盘小子的网盘资源列表，支持按分类筛选并查看夸克网盘、百度网盘、阿里云盘最新更新内容。`;
+		const robots = "index, follow";
 
 		const buildPageHref = (page: number) => {
 			return buildCanonicalUrl(match.pathname, {
