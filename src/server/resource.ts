@@ -11,6 +11,7 @@ import {
 	updateResourceDiskUrl,
 } from "#/db/queries/resource-disk";
 import type { Category, Resource } from "#/db/schema";
+import type { HomeMovie } from "#/types";
 import { env } from "#/env";
 import { notice } from "#/utils/notice";
 import { getHotResourceCore, getResourceCount } from "@/db/queries/resource";
@@ -26,6 +27,26 @@ export const getHotResourceServer = createServerFn().handler(async () => {
 	const count = await getResourceCount();
 	cache.set(cacheKey, { hotResources, count });
 	return { hotResources, count };
+});
+
+export const getHomeMoviesServer = createServerFn().handler(async () => {
+  const cacheKey = "homeMovies";
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return cached as { movies: HomeMovie[] };
+  }
+  try {
+    const res = await fetch(env.HOME_MOVIE_API);
+    const result = await res.json();
+    if (result.success && Array.isArray(result.data)) {
+      const movies = result.data.slice(0, 10);
+      cache.set(cacheKey, { movies });
+      return { movies };
+    }
+  } catch (error) {
+    console.error("获取首页影视数据失败", error);
+  }
+  return { movies: [] };
 });
 
 export const getResourcePageListServer = createServerFn({ method: "GET" })

@@ -4,6 +4,7 @@ import { z } from "zod";
 export const env = createEnv({
 	server: {
 		HOT_MOVIE_API: z.string(),
+		HOME_MOVIE_API: z.string(),
 		DATABASE_HOST: z.string(),
 		DATABASE_PORT: z.string(),
 		DATABASE_USERNAME: z.string(),

@@ -15,7 +15,8 @@ import {
 	InputGroupInput,
 } from "#/components/ui/input-group";
 import { SITE_URL } from "#/lib/seo";
-import { getHotResourceServer } from "@/server/resource";
+import type { HomeMovie } from "#/types";
+import { getHomeMoviesServer, getHotResourceServer } from "@/server/resource";
 
 const landingHighlights = [
 	{
@@ -93,13 +94,17 @@ const faqItems = [
 
 export const Route = createFileRoute("/")({
 	loader: async () => {
-		const hotResources = await getHotResourceServer();
-		return hotResources;
+		const [hotResources, homeMovies] = await Promise.all([
+			getHotResourceServer(),
+			getHomeMoviesServer(),
+		]);
+		return { ...hotResources, movies: homeMovies.movies };
 	},
 	staleTime: 5 * 60 * 1000,
 	gcTime: 5 * 60 * 1000,
 	head: () => {
-		const title = "盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台";
+		const title =
+			"盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台";
 		const description =
 			"盘小子聚合夸克网盘、百度网盘、阿里云盘等多平台资源，支持关键词快速检索与热门内容发现。";
 		const faqSchema = {
@@ -152,12 +157,8 @@ function App() {
 		<main className="bg-blue-50 dark:bg-blue-900/10 py-12 px-4 md:px-0 flex justify-center">
 			<div className="container grid grid-cols-1 gap-8 items-center">
 				<header className="space-y-4 text-center">
-					<div className="flex items-center gap-2 justify-center">
-						<img src="/logo.svg" alt="盘小子" className="w-8 h-8" />
-						<span className="text-2xl font-bold text-primary">盘小子</span>
-					</div>
 					<h1 className="text-2xl md:text-3xl font-bold">
-						免费网盘资源搜索引擎
+						盘小子 - 免费网盘资源搜索引擎
 					</h1>
 					<p className="text-sm text-gray-700 dark:text-muted-foreground">
 						聚合夸克网盘、百度网盘、阿里云盘等平台资源，快速定位你需要的内容。
@@ -237,6 +238,54 @@ function App() {
 						</CardContent>
 					</Card>
 				</section>
+
+				{data.movies && data.movies.length > 0 && (
+					<section aria-labelledby="poster-wall-heading" className="space-y-3">
+						<h2
+							id="poster-wall-heading"
+							className="text-xl font-bold text-center"
+						>
+							热门影视
+						</h2>
+						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+							{data.movies.map((movie: HomeMovie) => (
+								<Link
+									key={movie.id}
+									to="/resource"
+									search={{ q: movie.title, page: 1 }}
+									className="group block bg-white dark:bg-[#333] shadow"
+								>
+									<div className="h-full overflow-hidden group-hover:ring-2 group-hover:ring-primary/50 transition-all">
+										<div className="aspect-[2/3] overflow-hidden">
+											<img
+												src={movie.poster}
+												alt={movie.title}
+												className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+												loading="lazy"
+											/>
+										</div>
+										<div className="p-3">
+											<h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
+												{movie.title}
+											</h3>
+											<div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+												{movie.rating > 0 && (
+													<span className="text-orange-500 font-medium">
+														{movie.rating}
+													</span>
+												)}
+												<span>{movie.year}</span>
+												<span className="px-1.5 py-0.5 rounded-full border text-[10px]">
+													{movie.type}
+												</span>
+											</div>
+										</div>
+									</div>
+								</Link>
+							))}
+						</div>
+					</section>
+				)}
 
 				<section aria-labelledby="why-heading" className="space-y-6">
 					<h2 id="why-heading" className="text-xl font-bold text-center">
