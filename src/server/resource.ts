@@ -13,6 +13,7 @@ import {
 import type { Category, Resource } from "#/db/schema";
 import type { HomeMovie } from "#/types";
 import { env } from "#/env";
+import { logger } from "#/utils/logger";
 import { notice } from "#/utils/notice";
 import { getHotResourceCore, getResourceCount } from "@/db/queries/resource";
 
@@ -44,7 +45,7 @@ export const getHomeMoviesServer = createServerFn().handler(async () => {
       return { movies };
     }
   } catch (error) {
-    console.error("获取首页影视数据失败", error);
+    logger.error("获取首页影视数据失败", error);
   }
   return { movies: [] };
 });
@@ -191,7 +192,7 @@ export const updateResource = createServerFn({ method: "POST" })
 				}
 
 				const result = await response.json();
-				console.log(result);
+				logger.log("转存API响应", { result });
 
 				if (result.message?.includes("capacity limit")) {
 					await notice("告警：资源磁盘容量不足，请及时清理");

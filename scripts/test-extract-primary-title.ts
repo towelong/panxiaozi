@@ -34,6 +34,7 @@ loadEnv({ path: ".env.local", override: false });
 loadEnv({ path: ".env", override: false });
 
 const { extractPrimaryTitle } = await import("../src/db/queries/resource.ts");
+const { logger } = await import("../src/utils/logger.ts");
 
 if (TITLE_SAMPLES.length !== EXPECTED_RESULTS.length) {
 	throw new Error("TITLE_SAMPLES 与 EXPECTED_RESULTS 长度不一致");
@@ -46,10 +47,7 @@ for (const [index, title] of TITLE_SAMPLES.entries()) {
 	const ok = extracted === expected;
 	if (ok) passed += 1;
 
-	console.log(`${index + 1}. 原始: ${title}`);
-	console.log(`   提取: ${extracted || "(空)"}`);
-	console.log(`   期望: ${expected}`);
-	console.log(`   结果: ${ok ? "PASS" : "FAIL"}`);
+	logger.log(`测试 ${index + 1}`, { original: title, extracted: extracted || "(空)", expected, result: ok ? "PASS" : "FAIL" });
 }
 
-console.log(`\n汇总: ${passed}/${TITLE_SAMPLES.length} PASS`);
+logger.log("汇总", { passed, total: TITLE_SAMPLES.length });

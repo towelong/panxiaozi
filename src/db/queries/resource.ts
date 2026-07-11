@@ -1,5 +1,6 @@
 import { and, count, desc, eq, like, ne } from "drizzle-orm";
 import { env } from "#/env";
+import { logger } from "#/utils/logger";
 import type { PageResult } from "@/types";
 import { db } from "../index";
 import {
@@ -87,7 +88,7 @@ export async function getHotResourceCore(): Promise<string[]> {
 			throw new Error("获取热门资源失败");
 		}
 	} catch (error) {
-		console.error(error);
+		logger.error("获取热门资源失败", error);
 		const result = await db
 			.select()
 			.from(resource)
