@@ -79,9 +79,7 @@ export async function getHotResourceCore(): Promise<string[]> {
 		const url = `${env.HOT_MOVIE_API}`;
 		const res = await fetch(url);
 		const result = await res.json();
-		list = result.data.map(
-			(item: { seriesInfo: { name: string } }) => item.seriesInfo.name,
-		);
+		list = result.data.map((item: { title: string }) => item.title);
 		if (list.length > 10) {
 			list = list.slice(0, 10);
 		}
