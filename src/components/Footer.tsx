@@ -27,7 +27,7 @@ interface FooterProps {
 
 export const Footer = ({
 	logo = {
-		src: "/logo.svg",
+		src: "/logo.webp",
 		alt: "盘小子",
 		title: "盘小子",
 		url: "https://pan.xiaozi.cc",
