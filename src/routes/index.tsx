@@ -183,8 +183,7 @@ function App() {
 							navigate({
 								to: "/resource",
 								search: {
-									q: query || undefined,
-									page: 1,
+									q: query,
 								},
 							});
 						}}
@@ -221,7 +220,7 @@ function App() {
 									<li key={item}>
 										<Link
 											to="/resource"
-											search={{ q: item, page: 1 }}
+											search={{ q: item }}
 											title={item}
 											className="flex items-center gap-2 group"
 										>
@@ -252,7 +251,7 @@ function App() {
 								<Link
 									key={movie.id}
 									to="/resource"
-									search={{ q: movie.title, page: 1 }}
+									search={{ q: movie.title }}
 									className="group block bg-white dark:bg-[#333] shadow"
 								>
 									<div className="h-full overflow-hidden group-hover:ring-2 group-hover:ring-primary/50 transition-all">
