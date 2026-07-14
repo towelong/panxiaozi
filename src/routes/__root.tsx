@@ -1,5 +1,10 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import {
+	createRootRoute,
+	HeadContent,
+	Link,
+	Scripts,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { env } from "#/env";
 import Footer from "../components/Footer";
@@ -7,6 +12,9 @@ import Header from "../components/Header";
 import appCss from "../styles.css?url";
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`;
+const DEFAULT_TITLE = "盘小子 - 网盘资源搜索与发现";
+const DEFAULT_DESCRIPTION =
+	"盘小子提供夸克网盘、百度网盘等公开分享资源的聚合检索，展示资源分类、更新时间和网盘来源，帮助用户更快核对并找到所需内容。";
 
 export const Route = createRootRoute({
 	head: () => ({
@@ -19,30 +27,28 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title:
-					"盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台",
+				title: DEFAULT_TITLE,
 			},
 			{
 				name: "description",
-				content:
-					"盘小子是专业的免费网盘资源搜索引擎，全面支持夸克网盘、百度网盘、阿里云盘等多个主流网盘平台的资源搜索与下载服务。提供快速精准的搜索体验，海量优质资源一键直达，界面简洁美观易用，完全免费且安全无广告无弹窗。立即体验高效便捷的网盘资源搜索服务，轻松快速找到您需要的各类文件、视频、文档等资源内容！",
+				content: DEFAULT_DESCRIPTION,
 			},
 			{
-				name: "keywords",
+				name: "robots",
 				content:
-					"盘小子,网盘搜索,夸克网盘,百度网盘,阿里云盘,免费资源搜索,网盘资源下载,网盘搜索引擎,云盘搜索,网盘资源,资源分享,文件搜索,网盘聚合",
+					"index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
 			},
-			{ name: "robots", content: "index, follow" },
-			{ name: "author", content: import.meta.env.VITE_SITE_NAME || "盘小子" },
+			{ name: "author", content: "盘小子" },
+			{ name: "theme-color", content: "#ffffff" },
+			{ name: "format-detection", content: "telephone=no" },
+			{ name: "referrer", content: "strict-origin-when-cross-origin" },
 			{
 				property: "og:title",
-				content:
-					"盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台",
+				content: DEFAULT_TITLE,
 			},
 			{
 				property: "og:description",
-				content:
-					"盘小子是专业的免费网盘资源搜索引擎，全面支持夸克网盘、百度网盘、阿里云盘等多个主流网盘平台的资源搜索与下载服务。提供快速精准的搜索体验，海量优质资源一键直达，界面简洁美观易用，完全免费且安全无广告无弹窗。",
+				content: DEFAULT_DESCRIPTION,
 			},
 			{ property: "og:type", content: "website" },
 			{ property: "og:locale", content: "zh_CN" },
@@ -54,13 +60,11 @@ export const Route = createRootRoute({
 			{ name: "twitter:creator", content: "@towelong" },
 			{
 				name: "twitter:title",
-				content:
-					"盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台",
+				content: DEFAULT_TITLE,
 			},
 			{
 				name: "twitter:description",
-				content:
-					"盘小子是专业的免费网盘资源搜索引擎，全面支持夸克网盘、百度网盘、阿里云盘等多个主流网盘平台的资源搜索与下载服务。提供快速精准的搜索体验，海量优质资源一键直达，界面简洁美观易用，完全免费且安全无广告无弹窗。",
+				content: DEFAULT_DESCRIPTION,
 			},
 			{ name: "twitter:image", content: "https://pan.xiaozi.cc/og.png" },
 		],
@@ -72,6 +76,12 @@ export const Route = createRootRoute({
 			{ rel: "icon", href: "/favicon.ico" },
 			{ rel: "apple-touch-icon", href: "/icons/icon-192x192.png" },
 			{ rel: "manifest", href: "/manifest.json" },
+			{
+				rel: "alternate",
+				type: "text/plain",
+				href: "/llms.txt",
+				title: "盘小子 LLM 站点说明",
+			},
 		],
 		scripts: [
 			{
@@ -84,9 +94,34 @@ export const Route = createRootRoute({
 			},
 		],
 	}),
-	notFoundComponent: () => <div>Not Found</div>,
+	notFoundComponent: NotFound,
 	shellComponent: RootDocument,
 });
+
+function NotFound() {
+	return (
+		<main className="container mx-auto min-h-[60vh] px-4 py-16 text-center">
+			<title>页面不存在 - 盘小子</title>
+			<meta name="robots" content="noindex, follow" />
+			<p className="text-sm font-medium text-primary">404</p>
+			<h1 className="mt-3 text-3xl font-bold">页面不存在或已被移除</h1>
+			<p className="mt-4 text-muted-foreground">
+				请检查地址，或返回资源列表继续搜索。
+			</p>
+			<div className="mt-8 flex justify-center gap-3">
+				<Link to="/" className="rounded-md border px-4 py-2 hover:bg-muted">
+					返回首页
+				</Link>
+				<Link
+					to="/resource"
+					className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+				>
+					浏览资源
+				</Link>
+			</div>
+		</main>
+	);
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
@@ -107,17 +142,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<Header />
 				{children}
 				<Footer />
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-					]}
-				/>
+				{import.meta.env.DEV ? (
+					<TanStackDevtools
+						config={{
+							position: "bottom-right",
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+						]}
+					/>
+				) : null}
 				<Scripts />
 			</body>
 		</html>

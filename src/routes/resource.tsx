@@ -18,8 +18,9 @@ import { Input } from "#/components/ui/input";
 import type { Category } from "#/db/schema";
 import {
 	buildCanonicalUrl,
+	buildSeoDescription,
 	buildSeoTitle,
-	NETDISK_TITLE_FILLERS,
+	serializeJsonLd,
 } from "#/lib/seo";
 import { cn } from "#/lib/utils";
 import { getResourcePageListServer } from "#/server/resource";
@@ -76,7 +77,7 @@ export const Route = createFileRoute("/resource")({
 	},
 	head: ({ loaderData, match, matches }) => {
 		const isResourceDetail = matches.some(
-			// @ts-ignore
+			// @ts-expect-error
 			(currentMatch) => currentMatch.routeId === "/resource/$rid",
 		);
 		if (isResourceDetail) {
@@ -98,12 +99,20 @@ export const Route = createFileRoute("/resource")({
 				: "网盘资源列表";
 		const title = buildSeoTitle(
 			currentPage > 1 ? `${titlePrefix}_第${currentPage}页` : titlePrefix,
-			NETDISK_TITLE_FILLERS,
 		);
-		const description = query
-			? `盘小子为你展示与“${query}”相关的夸克网盘、百度网盘、阿里云盘资源，支持分类筛选与分页浏览。`
-			: `浏览盘小子的网盘资源列表，支持按分类筛选并查看夸克网盘、百度网盘、阿里云盘最新更新内容。`;
-		const robots = "index, follow";
+		const description = buildSeoDescription(
+			query
+				? `查看与“${query}”相关的网盘资源索引，并按分类、更新时间和网盘来源核对结果。第三方分享链接可能失效，请在访问前确认信息。`
+				: category && category !== "all"
+					? `浏览${categoryLabel}分类下的网盘资源索引，查看标题、描述、更新时间与网盘来源，并进入详情页核对第三方分享信息。`
+					: "浏览盘小子收录的网盘资源索引，按分类查看标题、描述、更新时间和网盘来源，并进入详情页核对第三方分享信息。",
+			"浏览盘小子网盘资源索引。",
+		);
+		const shouldIndex =
+			!query && currentPage === 1 && (loaderData?.total ?? 0) > 0;
+		const robots = shouldIndex
+			? "index, follow, max-image-preview:large, max-snippet:-1"
+			: "noindex, follow";
 
 		const buildPageHref = (page: number) => {
 			return buildCanonicalUrl(match.pathname, {
@@ -125,6 +134,20 @@ export const Route = createFileRoute("/resource")({
 		if (currentPage < totalPages) {
 			links.push({ rel: "next", href: buildPageHref(currentPage + 1) });
 		}
+		const structuredData = loaderData?.resources.length
+			? {
+					"@context": "https://schema.org",
+					"@type": "ItemList",
+					name: titlePrefix,
+					numberOfItems: loaderData.resources.length,
+					itemListElement: loaderData.resources.map((resource, index) => ({
+						"@type": "ListItem",
+						position: (currentPage - 1) * loaderData.pageSize + index + 1,
+						name: resource.title,
+						url: buildCanonicalUrl(`/resource/${resource.pinyin}`),
+					})),
+				}
+			: null;
 
 		return {
 			meta: [
@@ -137,6 +160,14 @@ export const Route = createFileRoute("/resource")({
 				{ property: "og:url", content: canonicalHref },
 			],
 			links,
+			scripts: structuredData
+				? [
+						{
+							type: "application/ld+json",
+							children: serializeJsonLd(structuredData),
+						},
+					]
+				: [],
 		};
 	},
 	component: RouteComponent,
@@ -301,12 +332,31 @@ function RouteComponent() {
 				</CardContent>
 			</Card>
 
+			{!search.q && data.page === 1 ? (
+				<section
+					aria-labelledby="resource-list-description"
+					className="mb-6 rounded-lg border bg-card px-5 py-4"
+				>
+					<h2 id="resource-list-description" className="font-semibold">
+						{search.category
+							? `${activeCategoryLabel}资源浏览说明`
+							: "资源列表说明"}
+					</h2>
+					<p className="mt-2 text-sm leading-6 text-muted-foreground">
+						本页展示本站索引的
+						{search.category ? `${activeCategoryLabel}分类` : "公开分享"}
+						信息，包括标题、摘要、更新时间与网盘来源。本站不托管文件；第三方链接的有效性、内容与权限可能发生变化，请进入详情页核对后再访问。
+					</p>
+				</section>
+			) : null}
+
 			<div className="space-y-3">
 				{data.resources.length === 0 ? (
 					<Card>
 						<CardContent>
-							<div className="text-sm text-muted-foreground py-8 text-center">
-								暂无数据
+							<div className="text-sm text-muted-foreground py-8 text-center space-y-2">
+								<p>没有找到匹配结果</p>
+								<p>请缩短关键词、替换同义词，或清除分类后重试。</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -378,7 +428,10 @@ function RouteComponent() {
 			</div>
 
 			{data.total > data.pageSize ? (
-				<div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
+				<nav
+					aria-label="资源分页"
+					className="flex items-center justify-center gap-2 mt-8 flex-wrap"
+				>
 					<Link
 						to="/resource"
 						search={{ ...search, page: Math.max(1, data.page - 1) }}
@@ -433,7 +486,7 @@ function RouteComponent() {
 						下一页
 						<IconChevronRight className="h-4 w-4" />
 					</Link>
-				</div>
+				</nav>
 			) : null}
 		</div>
 	);

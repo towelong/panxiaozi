@@ -33,15 +33,18 @@ export const Footer = ({
 		url: "https://pan.xiaozi.cc",
 	},
 	className,
-	tagline = "致力于打造一站式网盘资源搜索平台。我们仅提供搜索服务，不存储、上传或分发任何网盘内容。所有资源均来自第三方网盘，请用户自行判断资源的真实性与安全性。本站秉承非营利原则运营，完全免费使用。如发现任何侵权内容，请发送邮件至i@xiaozi.cc",
+	tagline = "盘小子提供第三方网盘公开分享信息的聚合检索，不存储、上传或分发网盘文件。请在访问前核对来源、更新时间与链接域名；如发现失效、错误或侵权索引，请发送邮件至 i@xiaozi.cc。",
 	menuItems = [
 		{
 			title: "快速链接",
 			links: [
 				{ text: "首页", url: "/" },
 				{ text: "资源列表", url: "/resource" },
+				{ text: "搜索与安全指南", url: "/guide" },
+				{ text: "关于与收录说明", url: "/about" },
 				{ text: "联系我们", url: "/contact" },
 				{ text: "网站地图", url: "/sitemap.xml" },
+				{ text: "LLM 站点说明", url: "/llms.txt" },
 			],
 		},
 		{
@@ -62,9 +65,7 @@ export const Footer = ({
 		},
 		{
 			title: "社媒",
-			links: [
-				{ text: "Twitter", url: "https://x.com/towelong" },
-			],
+			links: [{ text: "Twitter", url: "https://x.com/towelong" }],
 		},
 	],
 	copyright = "© 2026 盘小子. All rights reserved.",
@@ -87,6 +88,8 @@ export const Footer = ({
 										src={logo.src}
 										alt={logo.alt}
 										title={logo.title}
+										width={40}
+										height={40}
 										className="h-10"
 									/>
 									<p className="text-base">{logo.title}</p>

@@ -1,5 +1,5 @@
 import { IconChevronRight } from "@tabler/icons-react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { ImagePreview } from "#/components/ImagePreview";
@@ -16,9 +16,10 @@ import {
 } from "#/components/ui/dialog";
 import {
 	buildCanonicalUrl,
+	buildSeoDescription,
 	buildSeoTitle,
-	NETDISK_TITLE_FILLERS,
 	SITE_URL,
+	serializeJsonLd,
 } from "#/lib/seo";
 import { cn } from "#/lib/utils";
 import { getResourceDetailServer, updateResource } from "#/server/resource";
@@ -39,7 +40,7 @@ const getDiskTypeIcon = (diskType: string) => {
 			return (
 				<img
 					src="/baidu_icon.svg"
-					alt="百度"
+					alt="百度网盘"
 					width={40}
 					height={40}
 					className="inline-block"
@@ -49,7 +50,7 @@ const getDiskTypeIcon = (diskType: string) => {
 			return (
 				<img
 					src="/quark_icon.svg"
-					alt="夸克"
+					alt="夸克网盘"
 					width={80}
 					height={80}
 					className="inline-block"
@@ -63,6 +64,9 @@ const getDiskTypeIcon = (diskType: string) => {
 export const Route = createFileRoute("/resource/$rid")({
 	loader: async ({ params: { rid } }) => {
 		const data = await getResourceDetailServer({ data: { pinyin: rid } });
+		if (!data.resource) {
+			throw notFound();
+		}
 		return data;
 	},
 	head: ({ loaderData, match }) => {
@@ -83,10 +87,11 @@ export const Route = createFileRoute("/resource/$rid")({
 				links: [{ rel: "canonical", href: canonicalHref }],
 			};
 		}
-		const description =
-			resource.desc?.trim() ||
-			`${resource.title} 网盘资源详情，包含更新时间、分类和可用下载入口。`;
-		const title = buildSeoTitle(resource.title, NETDISK_TITLE_FILLERS);
+		const description = buildSeoDescription(
+			resource.desc,
+			`${resource.title} 网盘资源详情，包含资源分类、更新时间与第三方网盘来源。`,
+		);
+		const title = buildSeoTitle(resource.title);
 		const breadcrumbSchema = {
 			"@context": "https://schema.org",
 			"@type": "BreadcrumbList",
@@ -109,7 +114,9 @@ export const Route = createFileRoute("/resource/$rid")({
 								"@type": "ListItem",
 								position: 3,
 								name: category.name,
-								item: `${SITE_URL}/resource?category=${resource.categoryKey}`,
+								item: buildCanonicalUrl("/resource", {
+									category: resource.categoryKey,
+								}),
 							},
 						]
 					: []),
@@ -129,13 +136,21 @@ export const Route = createFileRoute("/resource/$rid")({
 			url: canonicalHref,
 			inLanguage: "zh-CN",
 			dateModified: resource.updatedAt?.toISOString(),
+			image: resource.cover || `${SITE_URL}/og.png`,
+			genre: category?.name,
+			isAccessibleForFree: true,
+			provider: { "@id": `${SITE_URL}/#organization` },
 		};
 
 		return {
 			meta: [
 				{ title },
 				{ name: "description", content: description },
-				{ name: "robots", content: "index, follow" },
+				{
+					name: "robots",
+					content:
+						"index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+				},
 				{ property: "og:type", content: "article" },
 				{ property: "og:title", content: title },
 				{ property: "og:description", content: description },
@@ -156,11 +171,11 @@ export const Route = createFileRoute("/resource/$rid")({
 			scripts: [
 				{
 					type: "application/ld+json",
-					children: JSON.stringify(breadcrumbSchema),
+					children: serializeJsonLd(breadcrumbSchema),
 				},
 				{
 					type: "application/ld+json",
-					children: JSON.stringify(resourceSchema),
+					children: serializeJsonLd(resourceSchema),
 				},
 			],
 		};
@@ -263,21 +278,28 @@ function RouteComponent() {
 				<CardContent>
 					<Alert className="bg-amber-50 border-amber-200">
 						<AlertDescription className="text-amber-700">
-							<p>
-								资源一定要转到夸克网盘方可观看全部 否则只能观看2分钟的试片
-								夸克还可以投屏
+							<h2 className="font-semibold">访问与安全提示</h2>
+							<ul className="mt-3 list-disc space-y-2 pl-5 leading-6">
+								<li>
+									资源由第三方网盘提供，打开前请核对域名、标题与更新时间。
+								</li>
+								<li>
+									不要在陌生页面输入额外账号密码，也不要运行来源不明的程序。
+								</li>
+								<li>
+									如果链接失效、内容不符或涉嫌侵权，请通过联系我们页面反馈具体地址。
+								</li>
+							</ul>
+							<p className="mt-4 text-sm">
+								也可关注微信公众号「小付同学的开发日常」反馈资源问题；二维码可点击放大。
 							</p>
-							<p className="mt-4 text-md">
-								资源不对的话关注微信公众号「小付同学的开发日常」私信我免费帮找!
-							</p>
-							<p className="mt-4 text-md">二维码点击可放大查看</p>
-							<p>
+							<div className="mt-3">
 								<ImagePreview
 									src="/wechat.jpg"
 									className="w-32 h-32"
-									alt="小付同学的开发日常"
+									alt="小付同学的开发日常微信公众号二维码"
 								/>
-							</p>
+							</div>
 						</AlertDescription>
 					</Alert>
 				</CardContent>
@@ -285,8 +307,16 @@ function RouteComponent() {
 
 			<Card className="shadow-sm">
 				<CardContent>
-					<div className="flex items-center">
-						<span className="text-base md:mr-2 my-2">资源地址:</span>
+					<section
+						aria-labelledby="resource-links-heading"
+						className="flex items-center"
+					>
+						<h2
+							id="resource-links-heading"
+							className="text-base font-semibold md:mr-2 my-2"
+						>
+							第三方资源入口：
+						</h2>
 						<div className="flex flex-col gap-2">
 							{resource.diskList.map((item) => {
 								const itemDiskIcon = getDiskTypeIcon(item.diskType);
@@ -299,34 +329,32 @@ function RouteComponent() {
 											{itemDiskIcon}
 										</span>
 										<Dialog>
-											<DialogTrigger>
-												{mounted && (
-													<Button asChild>
-														<h3
-															className="bg-primary text-white px-1 py-1"
-															onClick={async () => {
-																if (item.url) {
-																	setText(item.url);
-																} else {
-																	try {
-																		const res = await updateResource({
-																			data: {
-																				id: item.id,
-																				categoryKey: category.key,
-																				externalUrl: item.externalUrl,
-																			},
-																		});
-																		setText(res.url);
-																	} catch (_) {
-																		setError("资源已失效");
-																	}
-																}
-															}}
-														>
-															点击获取
-														</h3>
-													</Button>
-												)}
+											<DialogTrigger asChild>
+												<Button
+													type="button"
+													onClick={async () => {
+														setError("");
+														if (item.url) {
+															setText(item.url);
+														} else {
+															setText("");
+															try {
+																const res = await updateResource({
+																	data: {
+																		id: item.id,
+																		categoryKey: category.key,
+																		externalUrl: item.externalUrl,
+																	},
+																});
+																setText(res.url);
+															} catch (_) {
+																setError("资源已失效");
+															}
+														}
+													}}
+												>
+													获取{item.diskType}网盘链接
+												</Button>
 											</DialogTrigger>
 											<DialogContent aria-describedby={undefined}>
 												<DialogHeader>
@@ -368,7 +396,7 @@ function RouteComponent() {
 								);
 							})}
 						</div>
-					</div>
+					</section>
 				</CardContent>
 			</Card>
 

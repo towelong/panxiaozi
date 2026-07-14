@@ -14,6 +14,7 @@ import {
 const navItems = [
 	{ label: "首页", href: "/" },
 	{ label: "资源", href: "/resource" },
+	{ label: "搜索指南", href: "/guide" },
 	{ label: "联系我们", href: "/contact" },
 ];
 
@@ -31,7 +32,13 @@ export default function Header() {
 			<div className="container mx-auto flex items-center justify-between">
 				<div className="flex items-center gap-6">
 					<Link title="盘小子" className="flex items-center gap-2" to={"/"}>
-						<img src="/logo.webp" alt="盘小子" className="h-8 w-8" />
+						<img
+							src="/logo.webp"
+							alt="盘小子"
+							width={32}
+							height={32}
+							className="h-8 w-8"
+						/>
 						<span className="text-xl font-bold text-primary">盘小子</span>
 					</Link>
 					<nav aria-label="主导航" className="hidden md:flex">

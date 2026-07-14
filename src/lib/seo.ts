@@ -1,8 +1,7 @@
 export const SITE_URL = "https://pan.xiaozi.cc";
 export const SITE_NAME = "盘小子";
-export const NETDISK_TITLE_FILLERS = ["夸克网盘", "百度网盘", "阿里云盘"];
 const TITLE_BRAND_SUFFIX = ` - ${SITE_NAME}`;
-const TITLE_MIN_LENGTH = 15;
+const DESCRIPTION_MAX_LENGTH = 160;
 
 export function buildCanonicalUrl(
 	pathname: string,
@@ -17,24 +16,36 @@ export function buildCanonicalUrl(
 	return pathname === "/" && !url.search ? SITE_URL : url.toString();
 }
 
-export function buildSeoTitle(title: string, fillers: string[] = []) {
-	let normalizedTitle = title.trim();
-	const minContentLength = TITLE_MIN_LENGTH - Array.from(TITLE_BRAND_SUFFIX).length;
+export function buildSeoTitle(title: string) {
+	const normalizedTitle = normalizePlainText(title);
+	return normalizedTitle.endsWith(TITLE_BRAND_SUFFIX)
+		? normalizedTitle
+		: `${normalizedTitle}${TITLE_BRAND_SUFFIX}`;
+}
 
-	for (const filler of fillers) {
-		if (Array.from(normalizedTitle).length >= minContentLength) {
-			break;
-		}
+export function buildSeoDescription(
+	content: string | null | undefined,
+	fallback: string,
+) {
+	const normalized = normalizePlainText(content || fallback);
+	const characters = Array.from(normalized);
 
-		const normalizedFiller = filler.trim();
-		if (!normalizedFiller || normalizedTitle.includes(normalizedFiller)) {
-			continue;
-		}
-
-		normalizedTitle = `${normalizedTitle}_${normalizedFiller}`;
+	if (characters.length <= DESCRIPTION_MAX_LENGTH) {
+		return normalized;
 	}
 
-	return `${normalizedTitle} - ${SITE_NAME}`;
+	return `${characters.slice(0, DESCRIPTION_MAX_LENGTH - 1).join("")}…`;
+}
+
+export function serializeJsonLd(value: unknown) {
+	return JSON.stringify(value)
+		.replaceAll("<", "\\u003c")
+		.replaceAll(">", "\\u003e")
+		.replaceAll("&", "\\u0026");
+}
+
+function normalizePlainText(value: string) {
+	return value.replace(/\s+/g, " ").trim();
 }
 
 function appendSearchParams(

@@ -20,16 +20,16 @@ const config = defineConfig({
 		viteReact(),
 		VitePWA({
 			registerType: "autoUpdate",
-			includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
+			includeAssets: ["favicon.ico", "robots.txt", "llms.txt", "llms-full.txt"],
 			manifest: {
-				name: "盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台",
+				name: "盘小子 - 网盘资源搜索与发现",
 				short_name: "盘小子",
 				description:
-					"盘小子是一个一站式网盘资源搜索引擎，支持夸克网盘、百度网盘、阿里云盘等多平台，快速精准搜索，一键直达",
+					"聚合检索第三方网盘公开分享信息，查看资源分类、更新时间和网盘来源。",
 				start_url: "/",
 				display: "standalone",
 				background_color: "#ffffff",
-				theme_color: "#000000",
+				theme_color: "#ffffff",
 				icons: [
 					{
 						src: "/favicon.ico",

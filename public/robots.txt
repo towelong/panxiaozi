@@ -1,4 +1,20 @@
+# Search engines may crawl public pages. Search-result URLs are controlled with
+# page-level noindex directives so crawlers can still follow resource links.
 User-agent: *
+Allow: /
+
+# AI search and user-requested retrieval agents may read the public site and
+# its LLM description. These rules do not override proxy/CDN-managed robots.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
 Allow: /
 
 Sitemap: https://pan.xiaozi.cc/sitemap.xml

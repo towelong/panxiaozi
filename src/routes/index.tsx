@@ -14,22 +14,43 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from "#/components/ui/input-group";
-import { SITE_URL } from "#/lib/seo";
+import { SITE_URL, serializeJsonLd } from "#/lib/seo";
 import type { HomeMovie } from "#/types";
 import { getHomeMoviesServer, getHotResourceServer } from "@/server/resource";
 
 const landingHighlights = [
 	{
-		title: "高质量筛选",
-		description: "聚合高热度资源词，减少你在无效结果上的时间消耗。",
+		title: "集中查看关键信息",
+		description:
+			"搜索结果同时展示资源标题、分类、更新时间和网盘类型，便于先核对再打开详情。",
 	},
 	{
-		title: "即时搜索",
-		description: "输入关键词即可跳转结果页，专注查找，不被复杂流程打断。",
+		title: "覆盖常见网盘来源",
+		description:
+			"聚合夸克网盘、百度网盘等第三方公开分享信息，减少在多个平台之间重复查找。",
 	},
 	{
-		title: "持续更新",
-		description: "热门词每天滚动变化，帮你更快发现近期值得关注的内容。",
+		title: "明确更新时间",
+		description:
+			"详情页标注信息更新时间，并提供问题反馈渠道；第三方链接仍可能因分享方调整而失效。",
+	},
+];
+
+const editorialPrinciples = [
+	{
+		title: "收录范围",
+		description:
+			"本站索引第三方网盘公开分享的标题、分类与链接信息，不存储、上传或分发网盘文件本身。",
+	},
+	{
+		title: "结果排序",
+		description:
+			"结果主要依据关键词相关性、资源更新时间与站内热度呈现，不承诺第三方内容始终可用。",
+	},
+	{
+		title: "内容处理",
+		description:
+			"发现失效、描述不准确或涉嫌侵权的条目，可以通过联系页反馈，我们会核查并处理索引信息。",
 	},
 ];
 
@@ -39,12 +60,13 @@ const quickSteps = [
 		description: "在首页搜索框中输入你要找的主题。",
 	},
 	{
-		title: "查看结果",
-		description: "进入资源页后按相关度快速筛选。",
+		title: "缩小范围",
+		description: "通过分类、年份、季数或文件类型等限定词减少无关结果。",
 	},
 	{
-		title: "持续追踪",
-		description: "回到首页查看热门趋势，获取更多方向。",
+		title: "核对详情",
+		description:
+			"打开详情页检查描述、更新时间和网盘来源，再决定是否访问第三方链接。",
 	},
 ];
 
@@ -52,7 +74,7 @@ const faqItems = [
 	{
 		question: "盘小子的资源是怎么来的？",
 		answer:
-			"系统会基于站内热门搜索与资源趋势进行聚合整理，优先展示更受关注、相关性更高的关键词。",
+			"盘小子聚合第三方网盘的公开分享信息，只索引标题、分类、描述、更新时间和链接等元数据，不存储或上传网盘文件。",
 	},
 	{
 		question: "搜索不到我想要的内容怎么办？",
@@ -60,17 +82,18 @@ const faqItems = [
 			"你可以尝试更换同义词、缩短关键词，或先从热门搜索中选择相关方向再逐步细化。",
 	},
 	{
-		question: "首页的热门搜索会更新吗？",
+		question: "为什么链接有时会失效？",
 		answer:
-			"会，热门关键词会根据最新数据持续变化，建议定期回访首页获取新的资源线索。",
+			"资源链接由第三方分享者和网盘平台管理，可能被取消、过期或调整权限。详情页的更新时间仅代表本站信息更新时间，不等于永久有效。",
 	},
 	{
 		question: "是否支持移动端使用？",
 		answer: "支持，页面已适配移动端和桌面端，方便你在不同设备上快速搜索。",
 	},
 	{
-		question: "使用盘小子需要注册账号吗？",
-		answer: "目前首页搜索和热门浏览不需要额外注册，打开即可使用基础检索能力。",
+		question: "盘小子会保存或分发文件吗？",
+		answer:
+			"不会。本站提供公开分享信息的搜索与导航，不托管文件，也不参与第三方网盘文件的上传和分发。",
 	},
 	{
 		question: "搜索关键词有推荐写法吗？",
@@ -78,17 +101,19 @@ const faqItems = [
 			"建议优先使用核心名词，例如“AI 提示词”“设计素材包”，再逐步叠加限定词提升准确度。",
 	},
 	{
-		question: "热门搜索里的排名代表什么？",
-		answer: "排名反映近期关键词的热度表现，序号越靠前通常代表当前关注度越高。",
-	},
-	{
-		question: "可以直接查看全部资源吗？",
-		answer: "可以，点击页面里的“查看全部资源”按钮即可进入资源列表页继续筛选。",
-	},
-	{
-		question: "如果发现关键词不准确，怎么反馈？",
+		question: "搜索结果如何排序？",
 		answer:
-			"你可以通过站内联系方式反馈问题，我们会根据反馈持续优化资源词和排序质量。",
+			"结果会综合关键词匹配、更新时间和站内热度呈现。排序用于帮助筛选，不代表对第三方内容质量、版权或安全性的担保。",
+	},
+	{
+		question: "访问第三方链接前需要注意什么？",
+		answer:
+			"请核对域名和分享信息，不要在陌生页面输入网盘之外的账号密码，不运行来源不明的程序，并确认使用内容符合当地法律与平台规则。",
+	},
+	{
+		question: "如何反馈失效、错误或侵权内容？",
+		answer:
+			"请通过联系我们页面发送具体资源地址和问题说明。对于可核实的失效、错误或侵权索引，我们会及时处理。",
 	},
 ];
 
@@ -103,21 +128,55 @@ export const Route = createFileRoute("/")({
 	staleTime: 5 * 60 * 1000,
 	gcTime: 5 * 60 * 1000,
 	head: () => {
-		const title =
-			"盘小子 - 免费网盘资源搜索引擎 | 夸克网盘 百度网盘 阿里云盘一站式搜索平台";
+		const title = "盘小子 - 网盘资源搜索与发现";
 		const description =
-			"盘小子聚合夸克网盘、百度网盘、阿里云盘等多平台资源，支持关键词快速检索与热门内容发现。";
-		const faqSchema = {
+			"聚合检索夸克网盘、百度网盘等公开分享信息，查看资源分类、更新时间与网盘来源，并通过搜索技巧更快定位所需内容。";
+		const structuredData = {
 			"@context": "https://schema.org",
-			"@type": "FAQPage",
-			mainEntity: faqItems.map((item) => ({
-				"@type": "Question",
-				name: item.question,
-				acceptedAnswer: {
-					"@type": "Answer",
-					text: item.answer,
+			"@graph": [
+				{
+					"@type": "Organization",
+					"@id": `${SITE_URL}/#organization`,
+					name: "盘小子",
+					url: SITE_URL,
+					logo: `${SITE_URL}/logo.webp`,
+					contactPoint: {
+						"@type": "ContactPoint",
+						contactType: "content and copyright inquiries",
+						email: "i@xiaozi.cc",
+						availableLanguage: "zh-CN",
+					},
 				},
-			})),
+				{
+					"@type": "WebSite",
+					"@id": `${SITE_URL}/#website`,
+					url: SITE_URL,
+					name: "盘小子",
+					description,
+					inLanguage: "zh-CN",
+					publisher: { "@id": `${SITE_URL}/#organization` },
+					potentialAction: {
+						"@type": "SearchAction",
+						target: {
+							"@type": "EntryPoint",
+							urlTemplate: `${SITE_URL}/resource?q={search_term_string}`,
+						},
+						"query-input": "required name=search_term_string",
+					},
+				},
+				{
+					"@type": "FAQPage",
+					"@id": `${SITE_URL}/#faq`,
+					mainEntity: faqItems.map((item) => ({
+						"@type": "Question",
+						name: item.question,
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: item.answer,
+						},
+					})),
+				},
+			],
 		};
 
 		return {
@@ -139,7 +198,7 @@ export const Route = createFileRoute("/")({
 			scripts: [
 				{
 					type: "application/ld+json",
-					children: JSON.stringify(faqSchema),
+					children: serializeJsonLd(structuredData),
 				},
 			],
 		};
@@ -157,15 +216,13 @@ function App() {
 		<main className="bg-blue-50 dark:bg-blue-900/10 py-12 px-4 md:px-0 flex justify-center">
 			<div className="container grid grid-cols-1 gap-8 items-center">
 				<header className="space-y-4 text-center">
-					<h1 className="text-2xl md:text-3xl font-bold">
-						盘小子 - 免费网盘资源搜索引擎
-					</h1>
+					<h1 className="text-2xl md:text-3xl font-bold">网盘资源搜索与发现</h1>
 					<p className="text-sm text-gray-700 dark:text-muted-foreground">
-						聚合夸克网盘、百度网盘、阿里云盘等平台资源，快速定位你需要的内容。
+						聚合夸克网盘、百度网盘等公开分享信息，先查看分类、更新时间和网盘来源，再访问第三方链接。
 					</p>
 					<p className="text-sm text-gray-700 dark:text-muted-foreground">
 						已收录 <strong className="text-primary">{data.count}</strong>{" "}
-						个高质量资源
+						条资源索引
 					</p>
 				</header>
 
@@ -288,7 +345,7 @@ function App() {
 
 				<section aria-labelledby="why-heading" className="space-y-6">
 					<h2 id="why-heading" className="text-xl font-bold text-center">
-						为什么使用盘小子
+						搜索结果提供哪些信息
 					</h2>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
 						{landingHighlights.map((item) => (
@@ -302,6 +359,38 @@ function App() {
 							</Card>
 						))}
 					</div>
+				</section>
+
+				<section aria-labelledby="principles-heading" className="space-y-6">
+					<div className="text-center space-y-2">
+						<h2 id="principles-heading" className="text-xl font-bold">
+							收录、排序与内容处理原则
+						</h2>
+						<p className="text-sm text-gray-600 dark:text-muted-foreground">
+							了解结果从哪里来、如何呈现，以及遇到问题时怎样反馈。
+						</p>
+					</div>
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						{editorialPrinciples.map((item) => (
+							<Card key={item.title}>
+								<CardContent className="pt-2">
+									<h3 className="font-semibold mb-2">{item.title}</h3>
+									<p className="text-sm text-gray-600 dark:text-muted-foreground leading-6">
+										{item.description}
+									</p>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+					<p className="text-center text-sm text-muted-foreground">
+						<Link to="/about" className="text-primary hover:underline">
+							查看完整收录说明
+						</Link>
+						<span className="mx-2">·</span>
+						<Link to="/guide" className="text-primary hover:underline">
+							阅读搜索与安全指南
+						</Link>
+					</p>
 				</section>
 
 				<section aria-labelledby="steps-heading" className="space-y-6">
