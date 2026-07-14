@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.xml]'
 import { Route as ResourceRouteImport } from './routes/resource'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.txt]'
+import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.txt]'
 import { Route as GuideRouteImport } from './routes/guide'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SitemapIndexDotxmlRouteImport } from './routes/sitemap.$index[.]xml'
+import { Route as SitemapIndexDotxmlRouteImport } from './routes/sitemap.$index[.xml]'
 import { Route as ResourceRidRouteImport } from './routes/resource/$rid'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -26,6 +28,16 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ResourceRoute = ResourceRouteImport.update({
   id: '/resource',
   path: '/resource',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
+  id: '/llms-full.txt',
+  path: '/llms-full.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuideRoute = GuideRouteImport.update({
@@ -64,6 +76,8 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/guide': typeof GuideRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/resource': typeof ResourceRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/resource/$rid': typeof ResourceRidRoute
@@ -74,6 +88,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/guide': typeof GuideRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/resource': typeof ResourceRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/resource/$rid': typeof ResourceRidRoute
@@ -85,6 +101,8 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/guide': typeof GuideRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/resource': typeof ResourceRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/resource/$rid': typeof ResourceRidRoute
@@ -97,6 +115,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/guide'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/resource'
     | '/sitemap.xml'
     | '/resource/$rid'
@@ -107,6 +127,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/guide'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/resource'
     | '/sitemap.xml'
     | '/resource/$rid'
@@ -117,6 +139,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/contact'
     | '/guide'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/resource'
     | '/sitemap.xml'
     | '/resource/$rid'
@@ -128,6 +152,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ContactRoute: typeof ContactRoute
   GuideRoute: typeof GuideRoute
+  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   ResourceRoute: typeof ResourceRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SitemapIndexDotxmlRoute: typeof SitemapIndexDotxmlRoute
@@ -147,6 +173,20 @@ declare module '@tanstack/react-router' {
       path: '/resource'
       fullPath: '/resource'
       preLoaderRoute: typeof ResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms-full.txt': {
+      id: '/llms-full.txt'
+      path: '/llms-full.txt'
+      fullPath: '/llms-full.txt'
+      preLoaderRoute: typeof LlmsFullDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guide': {
@@ -211,6 +251,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ContactRoute: ContactRoute,
   GuideRoute: GuideRoute,
+  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   ResourceRoute: ResourceRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SitemapIndexDotxmlRoute: SitemapIndexDotxmlRoute,

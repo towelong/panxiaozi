@@ -20,7 +20,7 @@ const config = defineConfig({
 		viteReact(),
 		VitePWA({
 			registerType: "autoUpdate",
-			includeAssets: ["favicon.ico", "robots.txt", "llms.txt", "llms-full.txt"],
+			includeAssets: ["favicon.ico", "robots.txt"],
 			manifest: {
 				name: "盘小子 - 网盘资源搜索与发现",
 				short_name: "盘小子",

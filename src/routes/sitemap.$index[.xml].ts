@@ -7,8 +7,7 @@ export const Route = createFileRoute("/sitemap/$index.xml")({
 	server: {
 		handlers: {
 			GET: async ({ params }) => {
-				const indexStr = params["index.xml"];
-				const indexMatch = /^(\d+)\.xml$/.exec(indexStr);
+				const indexMatch = /^(\d+)\.xml$/.exec(params["index.xml"]);
 				if (!indexMatch) {
 					return notFoundResponse();
 				}

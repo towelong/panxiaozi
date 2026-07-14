@@ -27,16 +27,8 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: DEFAULT_TITLE,
-			},
-			{
 				name: "description",
 				content: DEFAULT_DESCRIPTION,
-			},
-			{
-				name: "robots",
-				content:
-					"index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
 			},
 			{ name: "author", content: "盘小子" },
 			{ name: "theme-color", content: "#ffffff" },
