@@ -5,7 +5,7 @@ const DESCRIPTION_MAX_LENGTH = 160;
 
 export function buildCanonicalUrl(
 	pathname: string,
-	search?: Record<string, unknown>,
+	search?: object,
 ) {
 	const url = new URL(pathname === "/" ? SITE_URL : `${SITE_URL}${pathname}`);
 
@@ -50,7 +50,7 @@ function normalizePlainText(value: string) {
 
 function appendSearchParams(
 	params: URLSearchParams,
-	search: Record<string, unknown>,
+	search: object,
 ) {
 	for (const [key, value] of Object.entries(search)) {
 		if (value === undefined || value === null || value === "") {

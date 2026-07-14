@@ -16,6 +16,7 @@ import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
 import type { Category } from "#/db/schema";
+import { validateResourceSearch } from "#/lib/resource-search";
 import {
 	buildCanonicalUrl,
 	buildSeoDescription,
@@ -26,21 +27,8 @@ import { cn } from "#/lib/utils";
 import { getResourcePageListServer } from "#/server/resource";
 import { formatTime } from "#/utils/time";
 
-function validateSearch(search: Record<string, unknown>): {
-	q?: string;
-	category?: string;
-	page?: number;
-} {
-	const q = typeof search.q === "string" ? search.q : undefined;
-	const category =
-		typeof search.category === "string" ? search.category : undefined;
-	const pageStr = typeof search.page === "string" ? search.page : undefined;
-	const page = pageStr ? Math.max(1, Number(pageStr) || 1) : undefined;
-	return { q, category, page };
-}
-
 export const Route = createFileRoute("/resource")({
-	validateSearch,
+	validateSearch: validateResourceSearch,
 	loaderDeps: ({ search }) => search,
 	loader: async ({ deps: search }) => {
 		const pageSize = 10;
