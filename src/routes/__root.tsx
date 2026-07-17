@@ -132,7 +132,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					defer
 					src="https://vibeloft.ai/telemetry/v1.js"
 					data-vl-product-id="8e4f9a88-4518-43ef-ad1f-0efc9f241e40"
-					data-vl-auth-key="REPLACE_WITH_NEW_WEB_AUTH_KEY"
+					data-vl-auth-key="vl_web.U19OcpoyNdfIZK01M7-OAD59a7-xWWPluo96C1sdx0w"
 				/>
 				<HeadContent />
 			</head>
