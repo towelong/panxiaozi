@@ -128,6 +128,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						data-website-id={env.VITE_UMAMI_ID}
 					/>
 				)}
+				<script
+					defer
+					src="https://vibeloft.ai/telemetry/v1.js"
+					data-vl-product-id="8e4f9a88-4518-43ef-ad1f-0efc9f241e40"
+					data-vl-auth-key="REPLACE_WITH_NEW_WEB_AUTH_KEY"
+				/>
 				<HeadContent />
 			</head>
 			<body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(79,184,178,0.24)]">
