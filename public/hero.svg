@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">盘小子：一站式网盘资源搜索引擎</title>
+  <desc id="desc">盘小子 Hero：项目名、一句话价值（聚合夸克/百度/阿里云盘搜索），以及右侧风格化的搜索界面示意图。</desc>
+
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EFF6FF"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#3B82F6" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="360" rx="24" fill="url(#bgGrad)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="1060" cy="70" r="140" fill="#DBEAFE" opacity="0.5"/>
+  <circle cx="980" cy="200" r="90" fill="#BFDBFE" opacity="0.35"/>
+  <circle cx="1120" cy="260" r="60" fill="#BFDBFE" opacity="0.25"/>
+
+  <!-- Left: title block -->
+  <g transform="translate(72, 64)">
+    <!-- Category pill -->
+    <rect x="0" y="0" width="150" height="34" rx="17" fill="#3B82F6"/>
+    <text x="75" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" font-weight="600" fill="#FFFFFF" text-anchor="middle">网盘资源搜索</text>
+
+    <!-- Project name -->
+    <text x="0" y="92" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="60" font-weight="800" fill="#0F172A">盘小子</text>
+
+    <!-- Value proposition -->
+    <text x="0" y="140" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="20" fill="#475569">一站式聚合搜索夸克 / 百度 / 阿里云盘</text>
+    <text x="0" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="20" fill="#475569">快速精准，一键直达</text>
+
+    <!-- Platform badges -->
+    <g transform="translate(0, 202)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+      <rect x="0" y="0" width="78" height="30" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="39" y="20" font-size="13" font-weight="600" fill="#3B82F6" text-anchor="middle">夸克网盘</text>
+
+      <rect x="90" y="0" width="78" height="30" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="129" y="20" font-size="13" font-weight="600" fill="#3B82F6" text-anchor="middle">百度网盘</text>
+
+      <rect x="180" y="0" width="90" height="30" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="225" y="20" font-size="13" font-weight="600" fill="#3B82F6" text-anchor="middle">阿里云盘</text>
+    </g>
+  </g>
+
+  <!-- Right: stylized UI illustration -->
+  <g transform="translate(616, 48)" filter="url(#softShadow)">
+    <!-- Main card -->
+    <rect x="0" y="0" width="520" height="264" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+
+    <!-- Search bar -->
+    <rect x="32" y="28" width="456" height="48" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <circle cx="54" cy="52" r="6" fill="#94A3B8"/>
+    <text x="72" y="57" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" fill="#94A3B8">请输入关键词搜索</text>
+    <rect x="368" y="32" width="112" height="40" rx="10" fill="#3B82F6"/>
+    <text x="424" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="14" font-weight="600" fill="#FFFFFF" text-anchor="middle">搜索</text>
+
+    <!-- Resource cards grid -->
+    <g transform="translate(32, 96)">
+      <!-- Card 1 -->
+      <rect x="0" y="0" width="220" height="64" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <rect x="16" y="18" width="120" height="10" rx="5" fill="#CBD5E1"/>
+      <rect x="16" y="38" width="64" height="8" rx="4" fill="#BFDBFE"/>
+      <rect x="176" y="20" width="28" height="24" rx="6" fill="#3B82F6"/>
+
+      <!-- Card 2 -->
+      <rect x="236" y="0" width="220" height="64" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <rect x="252" y="18" width="100" height="10" rx="5" fill="#CBD5E1"/>
+      <rect x="252" y="38" width="72" height="8" rx="4" fill="#BFDBFE"/>
+      <rect x="412" y="20" width="28" height="24" rx="6" fill="#3B82F6"/>
+
+      <!-- Card 3 -->
+      <rect x="0" y="80" width="220" height="64" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <rect x="16" y="98" width="110" height="10" rx="5" fill="#CBD5E1"/>
+      <rect x="16" y="118" width="60" height="8" rx="4" fill="#BFDBFE"/>
+      <rect x="176" y="100" width="28" height="24" rx="6" fill="#3B82F6"/>
+
+      <!-- Card 4 -->
+      <rect x="236" y="80" width="220" height="64" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <rect x="252" y="98" width="90" height="10" rx="5" fill="#CBD5E1"/>
+      <rect x="252" y="118" width="80" height="8" rx="4" fill="#BFDBFE"/>
+      <rect x="412" y="100" width="28" height="24" rx="6" fill="#3B82F6"/>
+    </g>
+  </g>
+</svg>
