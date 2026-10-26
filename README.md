@@ -17,6 +17,45 @@ To build this application for production:
 pnpm build
 ```
 
+## Docker Image Publishing
+
+The workflow in `.github/workflows/docker-publish.yml` builds the existing
+`Dockerfile` and pushes the image to a private registry only on pushes to `v2`.
+It also supports manual runs from the GitHub Actions tab when selecting `v2`;
+manual runs on other branches are skipped. The Dockerfile already runs
+`pnpm build`, so a separate application build step is not needed.
+
+In your GitHub repository, open **Settings > Secrets and variables > Actions**.
+Add these repository variables under **Variables > New repository variable**:
+
+| Variable | Example | Description |
+| --- | --- | --- |
+| `REGISTRY` | `registry.example.com:5000` | Required registry host, optionally including a port. Do not include `https://`, a path, or a trailing slash. |
+| `IMAGE_NAME` | `my-team/pxz` | Image name, optionally including a namespace/project. Defaults to `pxz`; use lowercase and omit the registry host and tag. |
+
+Add these repository secrets under **Secrets > New repository secret**:
+
+| Secret | Value |
+| --- | --- |
+| `REGISTRY_USERNAME` | Registry username or robot account name with push access to the target image repository. |
+| `REGISTRY_PASSWORD` | Registry password or access token for that account. |
+
+The published image uses the first 12 characters of the commit SHA as its only tag:
+
+```text
+registry.example.com:5000/my-team/pxz:0123456789ab
+```
+
+Credentials are used only to log in to the registry; do not commit them to the
+repository or pass them into the image build. Create the target registry
+project/repository first if your registry requires it.
+
+The workflow currently publishes `linux/amd64` images. The registry must be
+reachable from the GitHub-hosted runner and use trusted HTTPS. For an
+internal-network-only registry, use a self-hosted runner with network access
+instead of `ubuntu-latest`. A self-signed registry certificate requires its CA
+to be configured for both Docker and the Buildx builder.
+
 ## Testing
 
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
